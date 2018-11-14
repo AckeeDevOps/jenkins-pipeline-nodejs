@@ -1,0 +1,159 @@
+def call(body) {
+
+  def cfg = [:]
+  body.resolveStrategy = Closure.DELEGATE_FIRST
+  body.delegate = cfg
+  body()
+
+  def agent = (cfg.agent != null) ? cfg.agent : ''
+
+  node(agent) {
+    // set current step for the notification handler
+    def pipelineStep = "start"
+    def config = [:]
+
+    try {
+      // https://jenkins.io/doc/pipeline/steps/workflow-scm-step/
+      stage('Checkout') {
+        pipelineStep = "checkout"
+        if (!fileExists('repo')){ new File('repo').mkdir() }
+        dir('repo') { checkout scm }
+
+        config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER)
+
+        dir('repo') {
+          def commitCount = sh(script: 'git log --pretty=oneline | wc -l', returnStdout: true).trim().toInteger()
+          if(commitCount > 1){
+            echo "creating changelog ..."
+            env.GIT_COMMIT = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
+            env.GIT_PREVIOUS_COMMIT = sh(script: "git rev-parse HEAD~1", returnStdout: true).trim()
+            sh(script: "git log --pretty='format:- %s [%ce]' ${env.GIT_COMMIT}...${env.GIT_PREVIOUS_COMMIT} > ../${env.CHANGELOG_PATH}")
+          }
+        }
+      }
+
+      // start of Build stage
+      stage('Build') {
+        pipelineStep = "build"
+        createNodeComposeBuildEnv(config, './build.json') // create docker-compose file
+        sh(script: "docker-compose -f ./build.json build")
+      }
+      // end of Build stage
+
+      // start of Docker push image stage
+      stage('Push image') {
+        pipelineStep = "push image"
+        sh(script: "gcloud auth configure-docker --configuration ${config.envDetails.gcpProjectId}")
+        sh(script: "docker push ${config.dockerImageTag}")
+      }
+      // end of Docker push image stage
+
+      // start of Test stage
+      stage('Test') {
+        pipelineStep = "test"
+        if (config.testConfig) {
+          createNodeComposeTestEnv(config, './test.json') // create docker-compose file
+          sh(script: "docker-compose -f test.json up --no-start")
+          sh(script: "docker-compose -f test.json run main npm run ci-test")
+          sh(script: "docker-compose -f test.json rm -s -f")
+
+          // publish results
+          step([
+            $class: 'JUnitResultArchiver',
+            allowEmptyResults: true,
+            healthScaleFactor: 10.0,
+            keepLongStdio: true,
+            testResults: './ci-outputs/mocha/test.xml'
+          ])
+          echo "junit finished. currentBuild.result=${currentBuild.result}"
+
+          step([
+            $class: 'CloverPublisher',
+            cloverReportDir: './ci-outputs/coverage',
+            cloverReportFileName: 'clover.xml',
+            failingTarget: [
+              conditionalCoverage: 0,
+              methodCoverage: 0,
+              statementCoverage: 0
+            ],
+            healthyTarget: [
+              conditionalCoverage: 80,
+              methodCoverage: 70,
+              statementCoverage: 80
+            ],
+            unhealthyTarget: [
+              conditionalCoverage: 0,
+              methodCoverage: 0,
+              statementCoverage: 0
+            ]
+          ])
+          echo "CloverPublisher finished. currentBuild.result=${currentBuild.result}"
+
+          if (currentBuild.result == 'UNSTABLE') {
+            error(message: "Test results are UNSTABLE.")
+          }
+        } else {
+          echo "Tests have been skipped based on the Jenkinsfile configuration"
+        }
+      }
+      // end of Test stage
+
+      // start of Deploy stage
+      stage('Deploy') {
+        pipelineStep = "deploy"
+
+        // if specified, obtain secrets
+        def secretData
+        if(config.secretsInjection) {
+          // get secrets from Vault
+          secretData = createNodeSecretsManifest(config)
+        } else {
+          echo "Skipping injection of credentials"
+        }
+
+        // create helm values file
+        def helmValuesJson = createNodeHelmValues(config, secretData)
+        writeFile(file: "./values.json", text: helmValuesJson)
+
+        // try to create yaml file from template first
+        // this checks whether values.yaml contains required fields
+        sh(script: "helm template -f ./values.json ${config.helmChart} > /dev/null")
+
+        // upgrade or install release
+        def deployCommand = "helm upgrade " +
+          "--install " +
+          "--kubeconfig ${config.kubeConfigPath} " +
+          "-f ./values.json " +
+          "--namespace ${config.envDetails.k8sNamespace} " +
+          "${config.helmReleaseName} " +
+          "${config.helmChart} "
+
+        sh(script: deployCommand + " --dry-run")
+        sh(script: deployCommand)
+      }
+      // end of Deploy stage
+
+    } catch(err) {
+      currentBuild.result = "FAILURE"
+      println(err.toString());
+      println(err.getMessage());
+      println(err.getStackTrace());
+      throw err
+    } finally {
+      // sometimes you need to check these files you know
+      if(!config.debugMode) {
+        sh(script: "docker-compose -f test.json rm -s -f")
+        sh(script: "docker-compose -f build.json rm -s -f")
+        sh(script: "rm -rf ./test.json")
+        sh(script: "rm -rf ./build.json")
+        sh(script: "rm -rf ./secrets")
+        sh(script: "rm -rf ./values.json")
+      }
+
+      // send slack notification
+      if(config.slackChannel) {
+        notifyBuild(currentBuild.result, pipelineStep)
+      }
+    }
+  }
+}
