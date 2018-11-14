@@ -51,6 +51,7 @@ def call(Map cfg, String branch, String build){
   env.CHANGELOG_PATH = "changelog.txt"
   env.SLACK_CHANNEL = config.slackChannel
 
+  echo "end of parsing section"
   //return config object
   return config
 }
