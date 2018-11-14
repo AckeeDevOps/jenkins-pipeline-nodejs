@@ -129,7 +129,7 @@ def call(body) {
           "${config.helmChart} "
 
         sh(script: deployCommand + " --dry-run")
-        sh(script: deployCommand)
+        if(!config.dryRun) { sh(script: deployCommand) }
       }
       // end of Deploy stage
 
