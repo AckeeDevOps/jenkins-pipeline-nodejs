@@ -37,7 +37,9 @@ def call(Map cfg, String branch, String build){
 
   // check values of configuration objects if they exist
   // secrets injection part
+  echo("Validating secretsInjection for the current env.")
   if(config.secretsInjection) { validateSecretsInjection(config.secretsInjection) }
+  echo("Validating secretsInjection for the test env.")
   if(config.testConfig) { validateSecretsInjection(config.testConfig.secretsInjection) }
   // test env secrets injection
 
@@ -51,7 +53,7 @@ def call(Map cfg, String branch, String build){
   env.CHANGELOG_PATH = "changelog.txt"
   env.SLACK_CHANNEL = config.slackChannel
 
-  echo "end of parsing section"
+  echo("end of parsing section")
   //return config object
   return config
 }
