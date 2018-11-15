@@ -21,6 +21,7 @@ def call(body) {
 
         config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER)
 
+        echo currentBuild.changeSets
         dir('repo') {
           def commitCount = sh(script: 'git log --pretty=oneline | wc -l', returnStdout: true).trim().toInteger()
           if(commitCount > 1){
