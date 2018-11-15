@@ -21,17 +21,10 @@ def call(body) {
 
         config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER)
 
-        echo getChangelog()
-
-        dir('repo') {
-          def commitCount = sh(script: 'git log --pretty=oneline | wc -l', returnStdout: true).trim().toInteger()
-          if(commitCount > 1){
-            echo "creating changelog ..."
-            env.GIT_COMMIT = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-            env.GIT_PREVIOUS_COMMIT = sh(script: "git rev-parse HEAD~1", returnStdout: true).trim()
-            sh(script: "git log --pretty='format:- %s [%ce]' ${env.GIT_COMMIT}...${env.GIT_PREVIOUS_COMMIT} > ../${env.CHANGELOG_PATH}")
-          }
-        }
+        // create a changelog
+        def changelog = getChangelog()
+        echo(changelog)
+        writeFile(file: "./changelog.txt", text: changelog)
       }
 
       // start of Build stage
