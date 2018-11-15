@@ -53,10 +53,10 @@ def call(String buildStatus, String reason) {
   // build status of null means successful
   buildStatus =  buildStatus ?: 'SUCCESS'
   if(env.BUILD_TYPE==null) env.BUILD_TYPE='Build'
-  notifyBuild(buildStatus: buildStatus, buildType: env.BUILD_TYPE, channel: env.SLACK_CHANNEL, reason: reason )
+  notifyNodeBuild(buildStatus: buildStatus, buildType: env.BUILD_TYPE, channel: env.SLACK_CHANNEL, reason: reason )
 }
 
 def call(String buildName, String buildStatus, String reason) {
   env.BUILD_TYPE=buildName
-  notifyBuild(buildStatus, reason)
+  notifyNodeBuild(buildStatus, reason)
 }
