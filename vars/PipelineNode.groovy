@@ -147,7 +147,7 @@ def call(body) {
 
       // send slack notification
       if(config.slackChannel) {
-        notifyBuild(currentBuild.result, pipelineStep)
+        notifyNodeBuild(currentBuild.result, pipelineStep)
       }
     }
   }
