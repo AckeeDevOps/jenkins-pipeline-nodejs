@@ -20,3 +20,5 @@ def call() {
     }
     return changeString
 }
+
+// credits: https://support.cloudbees.com/hc/en-us/articles/217630098-How-to-access-Changelogs-in-a-Pipeline-Job-
