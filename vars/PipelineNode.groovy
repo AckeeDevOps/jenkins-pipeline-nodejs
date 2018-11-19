@@ -93,6 +93,20 @@ def call(body) {
       }
       // end of Test stage
 
+      // start of Documentation stage
+      stage('Documentation') {
+        if(config.documentation) {
+          createNodeComposeDocsEnv(config, './documentation.json')
+          sh(script: "docker-compose -f documentation.json up --no-start")
+          sh(script: "docker-compose -f documentation.json run main npm run docs")
+          sh(script: "docker-compose -f documentation.json rm -s -f")
+          archiveArtifacts(artifacts: './docs-output/index.html')
+        } else {
+          echo("skipping documentation.")
+        }
+      }
+      // end of Documentation stage
+
       // start of Deploy stage
       stage('Deploy') {
         pipelineStep = "deploy"
