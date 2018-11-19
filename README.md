@@ -37,6 +37,8 @@ PipelineNode{
   gcpDockerRegistryPrefix = "eu.gcr.io"
   sshCredentialsId = "jenkins-ssh-key"
 
+  documentation = [:]
+
   branchEnvs = [
     master: [
       friendlyEnvName: "production",
