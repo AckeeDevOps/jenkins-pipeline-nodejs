@@ -100,7 +100,7 @@ def call(body) {
           sh(script: "docker-compose -f documentation.json up --no-start")
           sh(script: "docker-compose -f documentation.json run main npm run docs")
           sh(script: "docker-compose -f documentation.json rm -s -f")
-          archiveArtifacts(artifacts: './docs-output/index.html')
+          archiveArtifacts(artifacts: 'docs-output/index.html')
         } else {
           echo("skipping documentation.")
         }
