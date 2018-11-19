@@ -28,6 +28,7 @@ def call(Map cfg, String branch, String build){
   config.helmValues = getNodeHelmValues(config.envDetails)
   config.helmChart = getNodeHelmChart(config.envDetails)
   config.testConfig = cfg.testConfig
+  config.documentation = cfg.documentation
 
   // apply some sanity checks
   validateEnvDetailsString('k8sNamespace', config)
