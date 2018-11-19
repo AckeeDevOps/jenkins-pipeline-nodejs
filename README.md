@@ -65,7 +65,7 @@ PipelineNode{
   gcpDockerRegistryPrefix = "eu.gcr.io"
   sshCredentialsId = "jenkins-ssh-key"
 
-  documentation = [:]
+  documentation = [:] // this won't trigger documentation stage
 
   branchEnvs = [
     master: [
