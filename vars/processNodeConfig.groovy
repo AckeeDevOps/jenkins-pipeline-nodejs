@@ -42,8 +42,12 @@ def call(Map cfg, String branch, String build){
   if(config.secretsInjection) { validateSecretsInjection(config.secretsInjection) }
   echo("Validating secretsInjection for the test env.")
   if(config.testConfig) { validateSecretsInjection(config.testConfig.secretsInjection) }
-  // test env secrets injection
 
+  // check documenation values
+  if(config.documenation) {
+    if(!config.documenation.bucketUrl) { error(message: "documentation/buckerUrl must be set.") }
+    if(!config.documenation.gcpProjectId) { error(message: "documentation/gcpProjectId must be set.") }
+  }
 
   // prepare Helm release name here
   config.helmReleaseName = "${config.projectFriendlyName}-" +
