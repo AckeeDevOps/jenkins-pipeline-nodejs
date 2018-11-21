@@ -4,7 +4,7 @@ def call(Map config) {
 
   def command = "gsutil mb -c ${storageClass} " +
     "-l ${location} " +
-    "-p ${config.envDetails.gcpProjectId} " +
+    "-p ${config.documentation.gcpProjectId} " +
     "${config.documentation.bucketUrl}"
 
   sh(script: command)
