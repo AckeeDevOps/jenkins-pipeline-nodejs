@@ -88,6 +88,7 @@ sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g' my.key
 Optional. If set - it must be a Map with following keys:
 - `pathPrefix` subdirectory where yout want to put generated `index.html` file
 - `bucketUrl` url of your GCS bucker starting with `gs://`
+- `gcpProjectId` ID (not name!) of the GCP project where you want to create GCS bucket
 
 🔻 **/branchEnvs**
 
