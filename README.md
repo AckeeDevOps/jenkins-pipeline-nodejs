@@ -53,6 +53,14 @@ directory.
 - `documentation`/`location` for example `europe-west3`
 - `documentation`/`pathPrefix` for example `project-name`
 
+## Jenkinsfile options
+
+**projectFriendlyName**
+
+This option must be set, typically it's a parent project name for all your
+micro services e.g. `order-hammer` so you can `api` micro service call as
+`order-hammer-api`
+
 ## Jenkinsfile format
 
 **Simple example without secrets injection**
