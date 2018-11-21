@@ -10,7 +10,7 @@ def call(body) {
   node(agent) {
     // set current step for the notification handler
     def pipelineStep = "start"
-    def config = [:]
+    def config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER)
 
     try {
       // https://jenkins.io/doc/pipeline/steps/workflow-scm-step/
@@ -19,8 +19,6 @@ def call(body) {
         if(config.debugMode) { echo scm.dump() }
         if (!fileExists('repo')){ new File('repo').mkdir() }
         dir('repo') { checkout scm }
-
-        config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER)
 
         // create a changelog
         def changelog = getChangelog()
