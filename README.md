@@ -129,6 +129,45 @@ Please note that you should not use
 following keys in this context since they're automatically generated in the
 pipeline process: `secrets`, `general`.
 
+🔻 **/branchEnvs/[branch_name]/secretsInjection**
+
+Optional. Configure this key if you want to obtain secrets from the Hashicorp
+Vault. Content of this key must be a Map with following keys.
+
+🔻 **/branchEnvs/[branch_name]/secretsInjection/jenkinsCredentialsId**
+
+This option must be set if you want to obtain secrets from the Vault.
+It's the id of Jenkins credentials with the Vault token.
+
+🔻 **/branchEnvs/[branch_name]/secretsInjection/vaultUrl**
+
+This option must be set if you want to obtain secrets from the Vault.
+It should be the base url of your Vault instance.
+
+🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets**
+
+This option must be set if you want to obtain secrets from the Vault.
+Content of this key must be a Map with following keys.
+
+🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/vaultSecretPath**
+
+This option must be set if you want to obtain secrets from the Vault.
+It's REST compatible path so it's compatible with KV1 or KV2.
+
+🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/keyMap[]**
+This option must be set if you want to obtain secrets from the Vault.
+Content of this key must be a List with following Maps.
+
+🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/keyMap[]/vault**
+This option must be set if you want to obtain secrets from the Vault.
+This key represents the remote key in the Vault document.
+
+🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/keyMap[]/local**
+This option must be set if you want to obtain secrets from the Vault.
+This key represents the local key that you can use while accessing secrets
+in the Helm chart. It can be the same as the remote key but keep in mind
+that all secrets are put to the flat Map so local key should have unique name.
+
 ## Jenkinsfile format
 
 **Simple example without secrets injection**
