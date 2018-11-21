@@ -55,11 +55,64 @@ directory.
 
 ## Jenkinsfile options
 
-**projectFriendlyName**
+**/projectFriendlyName**
 
 This option must be set, typically it's a parent project name for all your
-micro services e.g. `order-hammer` so you can `api` micro service call as
-`order-hammer-api`
+micro services e.g. `order-hammer` so you can call `api` micro service as
+`order-hammer-api`.
+
+**/kubeConfigPathPrefix**
+
+path to the directory where you store Kubertnetes config files. This option must
+be set in case you are using automated kubeconfig name resolution mentioned in the
+previous part of this document.
+
+**/gcpDockerRegistryPrefix**
+
+This option must be set,
+[follow the official Google documentation](https://cloud.google.com/container-registry/docs/pushing-and-pulling)
+to get the right prefix.
+
+**/sshCredentialsId**
+
+This option must be set. It's the id of Jenkins credentials with the private
+RSA key for the interaction with private Git repositories. RSA key must be
+pre-processed this way:
+
+```
+sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g' my.key
+```
+
+**/documentation**
+
+Optional. If set - it must be a Map with following keys:
+- `pathPrefix` subdirectory where yout want to put generated `index.html` file
+- `bucketUrl` url of your GCS bucker starting with `gs://`
+
+**/branchEnvs**
+
+This option must be set. It's always a Map, keys are named by Git branches.
+
+**/branchEnvs/[branch_name]/friendlyEnvName**
+
+This option must be set. It's typically `production` for the `master` branch,
+`development` for the `development` branch etc.
+
+**/branchEnvs/[branch_name]/gcpProjectId**
+
+This option must be set. It's the ID (not name!) of your GCP project.
+
+**/branchEnvs/[branch_name]/gkeClusterName**
+
+This option must be set. It's the name of Kubernetes cluster, you can get it
+dirrectly in the GCP console.
+
+**/branchEnvs/[branch_name]/k8sNamespace**
+
+This option must be set. Use `default` if you're using single GKE cluster for the
+single environment, otherwise you can for example use the same naming convention as
+for the `friendlyEnvName` naming.
+
 
 ## Jenkinsfile format
 
