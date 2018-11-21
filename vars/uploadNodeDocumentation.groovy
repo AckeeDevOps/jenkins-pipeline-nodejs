@@ -9,7 +9,7 @@ def call(Map config) {
 
   def command = "gsutil cp ./docs-output/index.html " +
     "${config.documentation.bucketUrl}/" +
-    "${pathPrefix}/index.html"
+    "${pathPrefix}/index-${config.branch}.html"
 
   sh(script: command)
 }
