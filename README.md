@@ -154,15 +154,15 @@ Content of this key must be a Map with following keys.
 This option must be set if you want to obtain secrets from the Vault.
 It's REST compatible path so it's compatible with KV1 or KV2.
 
-🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/keyMap[]**
+🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/keyMap**
 This option must be set if you want to obtain secrets from the Vault.
 Content of this key must be a List with following Maps.
 
-🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/keyMap[]/vault**
+🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/keyMap/[]vault**
 This option must be set if you want to obtain secrets from the Vault.
 This key represents the remote key in the Vault document.
 
-🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/keyMap[]/local**
+🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/keyMap/[]local**
 This option must be set if you want to obtain secrets from the Vault.
 This key represents the local key that you can use while accessing secrets
 in the Helm chart. It can be the same as the remote key but keep in mind
