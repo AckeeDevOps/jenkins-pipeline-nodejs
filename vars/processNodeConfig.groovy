@@ -1,12 +1,13 @@
 import groovy.json.*
 
-def call(Map cfg, String branch, String build){
+def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   def config = [:]
 
   // process simple stuff first
   config.workspace = pwd()
   config.branch = branch
   config.buildNumber = build
+  config.repositoryUrl = repositoryUrl
   config.projectFriendlyName = cfg.projectFriendlyName
   config.appName = cfg.appName
   config.appRole = cfg.appRole
