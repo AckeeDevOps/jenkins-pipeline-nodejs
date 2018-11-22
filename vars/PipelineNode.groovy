@@ -10,7 +10,8 @@ def call(body) {
   node(agent) {
     // set current step for the notification handler
     def pipelineStep = "start"
-    def config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER)
+    def repositoryUrl = scm.getUserRemoteConfigs()[0].getUrl()
+    def config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER, repositoryUrl)
 
     try {
       // https://jenkins.io/doc/pipeline/steps/workflow-scm-step/
