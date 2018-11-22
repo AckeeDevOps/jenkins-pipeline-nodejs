@@ -16,7 +16,7 @@ def call(body) {
       // https://jenkins.io/doc/pipeline/steps/workflow-scm-step/
       stage('Checkout') {
         pipelineStep = "checkout"
-        if(config.debugMode) { echo scm.dump() }
+        if(config.debugMode) { echo scm.dump().userRemoteConfigs }
         if (!fileExists('repo')){ new File('repo').mkdir() }
         dir('repo') { checkout scm }
 
