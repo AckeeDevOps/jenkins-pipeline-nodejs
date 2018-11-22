@@ -18,7 +18,7 @@ def call(Map config, Map secrets) {
   values.general.meta.builtBy = config.startedBy
   values.general.meta.buildNumber = config.buildNumber
   values.general.meta.branch = config.branch
-
+  values.general.meta.repositoryUrl = config.repositoryUrl
 
   //secretsSection
   if(config.secretsInjection) {
