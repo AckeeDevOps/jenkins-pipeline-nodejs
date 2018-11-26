@@ -150,16 +150,16 @@ It should be the base url of your Vault instance.
 This option must be set if you want to obtain secrets from the Vault.
 Content of this key must be a Map with following keys.
 
-🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/vaultSecretPath**
+🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/[]vaultSecretPath**
 
 This option must be set if you want to obtain secrets from the Vault.
 It's REST compatible path so it's compatible with KV1 or KV2.
 
-🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/keyMap**
+🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/[]keyMap**
 This option must be set if you want to obtain secrets from the Vault.
 Content of this key must be a List with following Maps.
 
-🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/keyMap/[]vault**
+🔻 **/branchEnvs/[branch_name]/secretsInjection/secrets/[]keyMap/[]vault**
 This option must be set if you want to obtain secrets from the Vault.
 This key represents the remote key in the Vault document.
 
