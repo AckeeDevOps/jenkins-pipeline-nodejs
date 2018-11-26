@@ -151,10 +151,10 @@ def call(body) {
     } finally {
       // sometimes you need to check these files you know
       if(!config.debugMode) {
-        sh(script: '[ -e ./test.json ] && rm -rf ./test.json')
-        sh(script: '[ -e ./build.json ] && rm -rf ./build.json')
-        sh(script: '[ -e ./secrets ] && rm -rf ./secrets')
-        sh(script: '[ -e ./values.json ] && rm -rf ./values.json')
+        sh(script: 'touch ./test.json && rm -rf ./test.json')
+        sh(script: 'touch ./build.json && rm -rf ./build.json')
+        sh(script: 'touch ./secrets && rm -rf ./secrets')
+        sh(script: 'touch ./values.json && rm -rf ./values.json')
       }
       
       // remove all containers
