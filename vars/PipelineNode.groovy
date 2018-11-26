@@ -149,6 +149,11 @@ def call(body) {
       println(err.getStackTrace());
       throw err
     } finally {
+      // remove all containers
+      sh(script: 'docker-compose -f build.json rm -s -f')
+      if(config.documentation) { sh(script: 'docker-compose -f documentation.json rm -s -f') }
+      if(config.testConfig) { sh(script: 'docker-compose -f test.json rm -s -f') }
+      
       // sometimes you need to check these files you know
       if(!config.debugMode) {
         sh(script: 'rm -rf ./test.json')
@@ -157,11 +162,6 @@ def call(body) {
         sh(script: 'rm -rf ./values.json')
       }
       
-      // remove all containers
-      sh(script: 'docker-compose -f build.json rm -s -f')
-      if(config.documentation) { sh(script: 'docker-compose -f documentation.json rm -s -f') }
-      if(config.testConfig) { sh(script: 'docker-compose -f test.json rm -s -f') }
-
       // send slack notification
       if(config.slackChannel) {
         notifyNodeBuild(currentBuild.result, pipelineStep)
