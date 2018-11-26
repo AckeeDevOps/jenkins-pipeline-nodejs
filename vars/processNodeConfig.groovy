@@ -42,7 +42,9 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   echo("Validating secretsInjection for the current env.")
   if(config.secretsInjection) { validateSecretsInjection(config.secretsInjection) }
   echo("Validating secretsInjection for the test env.")
-  if(config.testConfig.secretsInjection) { validateSecretsInjection(config.testConfig.secretsInjection) }
+  if(config.testConfig) {
+    if(config.testConfig.secretsInjection) { validateSecretsInjection(config.testConfig.secretsInjection) }
+  }
 
   // check documenation values
   if(config.documenation) {
