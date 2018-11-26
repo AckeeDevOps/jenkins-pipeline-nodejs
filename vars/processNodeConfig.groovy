@@ -30,6 +30,9 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.helmChart = getNodeHelmChart(config.envDetails)
   config.testConfig = cfg.testConfig
   config.documentation = cfg.documentation
+  
+  // process envDetails dry run if specified
+  if(config.envDetails.dryRun) { config.dryRun = config.envDetails.dryRun }
 
   // apply some sanity checks
   validateEnvDetailsString('k8sNamespace', config)
