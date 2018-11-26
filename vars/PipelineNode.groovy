@@ -151,16 +151,16 @@ def call(body) {
     } finally {
       // sometimes you need to check these files you know
       if(!config.debugMode) {
-        sh(script: "[ -e ./test.json ] && rm -rf ./test.json")
-        sh(script: "[ -e ./build.json ] && rm -rf ./build.json")
-        sh(script: "[ -e ./secrets ] && rm -rf ./secrets")
-        sh(script: "[ -e ./values.json ] && rm -rf ./values.json")
+        sh(script: '[ -e ./test.json ] && rm -rf ./test.json')
+        sh(script: '[ -e ./build.json ] && rm -rf ./build.json')
+        sh(script: '[ -e ./secrets ] && rm -rf ./secrets')
+        sh(script: '[ -e ./values.json ] && rm -rf ./values.json')
       }
       
       // remove all containers
-      sh(script: "docker-compose -f test.json rm -s -f")
-      sh(script: "docker-compose -f build.json rm -s -f")
-      sh(script: "docker-compose -f documentation.json rm -s -f")
+      sh(script: 'docker-compose -f test.json rm -s -f')
+      sh(script: 'docker-compose -f build.json rm -s -f')
+      sh(script: 'docker-compose -f documentation.json rm -s -f')
 
       // send slack notification
       if(config.slackChannel) {
