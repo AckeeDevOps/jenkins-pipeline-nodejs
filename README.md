@@ -395,6 +395,7 @@ RUN chmod 0400 ~/.ssh/id_rsa
 RUN eval `ssh-agent -s` && ssh-add ~/.ssh/id_rsa
 RUN ssh-keyscan your.private.gitlab.domain.co.uk > /root/.ssh/known_hosts
 # build command
+RUN npm set unsafe-perm true
 RUN npm install
 
 # MAIN IMAGE
