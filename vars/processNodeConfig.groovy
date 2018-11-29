@@ -59,7 +59,9 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.helmReleaseName = "${config.projectFriendlyName}-" +
     "${config.appName}-" +
     "${config.envDetails.friendlyEnvName}"
-  if(config.envConfig.helmReleasePrefix) { config.helmReleaseName = config.envConfig.helmReleasePrefix + "-" + config.helmReleaseName }
+  if(config.envDetails.helmReleasePrefix) { 
+    config.helmReleaseName = config.envDetails.helmReleasePrefix + "-" + config.helmReleaseName 
+  }
 
   // set env variables
   env.CHANGELOG_PATH = "changelog.txt"
