@@ -126,7 +126,7 @@ def call(body) {
 
         // try to create yaml file from template first
         // this checks whether values.yaml contains required fields
-        sh(script: "helm template -f ./values.json ${config.helmChart} > /dev/null")
+        sh(script: "helm template -f ./values.json ${config.helmChart} -n ${config.helmReleaseName} > /dev/null")
 
         // upgrade or install release
         def deployCommand = "helm upgrade " +
