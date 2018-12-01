@@ -11,6 +11,8 @@ Make sure you have included this library first.
 home > Manage Jenkins > Configure System > Global Pipeline Libraries
 ```
 
+![Library settings](assets/01-jenkins-library.png)
+
 ## Jenkins job configuration
 TBD 👷
 
