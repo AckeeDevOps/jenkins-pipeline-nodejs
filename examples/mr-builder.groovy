@@ -3,9 +3,12 @@
 env.SLACK_CHANNEL = "ci-merge-requests"
 node() {
 
+  // set some defaults values
   def config = [:]
+  // these two params can be overwritten from test.cfg.groovy
   config.sshCredentialsId = "jenkins-ssh-key"
   config.dockerImageTag = "test-nodejs"
+  // has to be hard-coded here
   config.gitlabCredentialsId = "jenkins-gitlab-credentials"
 
   config.testConfig = [:]
@@ -77,6 +80,7 @@ node() {
       }
       // end of build stage
 
+      // start of test stage
       gitlabCommitStatus(name: "run tests") {
         stage('Run Docker tests') {
           reason='tests'
@@ -103,7 +107,9 @@ node() {
           }
         }
       }
+      // end of test stage
 
+      // start of lint stage
       gitlabCommitStatus(name: "run lint") {
         stage('Run Docker lint') {
           reason='lint'
@@ -121,6 +127,7 @@ node() {
           }
         }
       }
+      // end of lint stage
     }
     currentBuild.result = 'SUCCESS'
 
@@ -129,6 +136,8 @@ node() {
     throw e
   } finally {
     notifyNodeBuild(currentBuild.result, "merge request")
+
+    // try to remove containers after every run
     sh(script: "docker-compose -f test.json rm -s -f")
   }
 }
