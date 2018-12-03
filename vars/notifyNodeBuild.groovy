@@ -11,7 +11,8 @@ def call( Map args ) {
   String reason = args.reason ?: 'reason unknown'
 
   // Default values
-  def author = getAuthorName()
+  def author
+  if(args.author) { author = args.author } else { author = getAuthorName() }
   def workspace = pwd()
   changelogPath = "${workspace}/${changelogPath}"
   def changelog
