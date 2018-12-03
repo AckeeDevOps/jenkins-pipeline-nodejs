@@ -164,8 +164,13 @@ def call(body) {
       }
       
       // send slack notification
-      if(config.slackChannel) {
-        notifyNodeBuild(currentBuild.result, pipelineStep)
+      if(config.slackChannel) {        
+        notifyNodeBuild(
+          buildStatus: currentBuild.result,
+          buildType: 'Build',
+          channel: config.slackChannel,
+          reason: pipelineStep
+        )        
       }
     }
   }
