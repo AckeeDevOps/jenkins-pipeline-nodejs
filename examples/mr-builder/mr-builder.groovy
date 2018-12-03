@@ -139,7 +139,7 @@ node() {
       buildStatus: currentBuild.result,
       buildType: 'MR',
       channel: config.slackChannel,
-      reason: 'merge request',
+      reason: reason,
       author: 'nobody'
     )
 
