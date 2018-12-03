@@ -8,6 +8,7 @@ node() {
   // these two params can be overwritten from test.cfg.groovy
   config.sshCredentialsId = "jenkins-ssh-key"
   config.dockerImageTag = "test-nodejs"
+  config.slackChannel = "ci-merge-requests"
   // has to be hard-coded here
   config.gitlabCredentialsId = "jenkins-gitlab-credentials"
 
@@ -103,7 +104,7 @@ node() {
           ])
 
           if (currentBuild.result == 'UNSTABLE') {
-            error "Tests results are UNSTABLE"
+            error "Test results are UNSTABLE (reported result is '${currentBuild.result}')"
           }
         }
       }
@@ -123,19 +124,24 @@ node() {
           ])
 
           if (currentBuild.result != 'SUCCESS') {
-            error "Lint results are UNSTABLE"
+            error "Lint results are UNSTABLE (reported result is '${currentBuild.result}')"
           }
         }
       }
       // end of lint stage
     }
-    currentBuild.result = 'SUCCESS'
 
   } catch (e) {
     currentBuild.result = "FAILURE"
     throw e
   } finally {
-    notifyNodeBuild(currentBuild.result, "merge request")
+    notifyNodeBuild(
+      buildStatus: currentBuild.result,
+      buildType: 'MR',
+      channel: config.slackChannel,
+      reason: 'merge request',
+      author: 'nobody'
+    )
 
     // try to remove containers after every run
     sh(script: "docker-compose -f test.json rm -s -f")
