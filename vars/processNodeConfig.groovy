@@ -94,10 +94,10 @@ def getNodeDockerTag(Map cfg, Map envDetails, branch, buildNumber) {
   tag = "${cfg.gcpDockerRegistryPrefix}/" +
     "${envDetails.gcpProjectId}/" +
     "${cfg.projectFriendlyName}/" +
-    "${cfg.appName}:${branch}.${buildNumber}"
+    "${cfg.appName}:${branch.replace("/", "-")}.${buildNumber}"
   tag = tag.toLowerCase()
   echo "Docker image tag: ${tag}"
-  return tag.replace("/", "-")
+  return tag
 }
 
 def getNodeHelmValues(Map envDetails) {
