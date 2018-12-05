@@ -97,7 +97,7 @@ def getNodeDockerTag(Map cfg, Map envDetails, branch, buildNumber) {
     "${cfg.appName}:${branch}.${buildNumber}"
   tag = tag.toLowerCase()
   echo "Docker image tag: ${tag}"
-  return tag
+  return tag.replace("/", "-")
 }
 
 def getNodeHelmValues(Map envDetails) {
