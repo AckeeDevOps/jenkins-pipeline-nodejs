@@ -12,6 +12,7 @@ def call(Map config, Map secrets) {
   values.general.appTier = config.appTier
   values.general.envName = config.envDetails.friendlyEnvName
   values.general.imageTag = config.dockerImageTag
+  values.general.gcpProjectId = config.envDetails.gcpProjectId
 
   // build specific info
   values.general.meta = [:]
