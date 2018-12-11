@@ -140,6 +140,10 @@ def call(body) {
 
         sh(script: deployCommand + " --dry-run")
         if(!config.dryRun) { sh(script: deployCommand) }
+        
+        // get status of the services within the namespace
+        sh(script: "k get svc -n ${config.envDetails.k8sNamespace} -o json | " +
+          "jq '.items[] | {name: .metadata.name, ports: .spec.ports[]}'")
       }
       // end of Deploy stage
 
