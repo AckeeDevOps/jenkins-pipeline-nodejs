@@ -62,6 +62,12 @@ def call(body) {
           createNodeComposeLintEnv(config, './lint.json') // create docker-compose file
           sh(script: "docker-compose -f lint.json up --no-start")
           sh(script: "docker-compose -f lint.json run main npm run ci-lint")
+          step([
+            $class: 'CheckStylePublisher',
+            pattern: 'ci-outputs/lint/checkstyle-result.xml',
+            usePreviousBuildAsReference: false,
+            unstableTotalHigh: '0'
+          ])
         }
       }
       // end of Lint stage
@@ -196,16 +202,6 @@ def call(body) {
           ]
         ])
         echo "CloverPublisher finished. currentBuild.result=${currentBuild.result}"
-      }
-
-      // publish lint results
-      if(config.runLint) {
-        step([
-          $class: 'CheckStylePublisher',
-          pattern: 'ci-outputs/lint/checkstyle-result.xml',
-          usePreviousBuildAsReference: false,
-          unstableTotalHigh: '0'
-        ])
       }
 
       // send slack notification
