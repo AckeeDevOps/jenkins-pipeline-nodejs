@@ -49,7 +49,6 @@ def call(body) {
           createNodeComposeTestEnv(config, './test.json') // create docker-compose file
           sh(script: "docker-compose -f test.json up --no-start")
           sh(script: "docker-compose -f test.json run main npm run ci-test")
-          sh(script: "docker-compose -f test.json rm -s -f")
           if (currentBuild.result == 'UNSTABLE') {
             error(message: "Test results are UNSTABLE.")
           }
@@ -59,13 +58,21 @@ def call(body) {
       }
       // end of Test stage
 
+      // start of Lint stage
+      stage('Lint') {
+        pipelineStep = "lint"
+        createNodeComposeLintEnv(config, './lint.json') // create docker-compose file
+        sh(script: "docker-compose -f test.json up --no-start")
+        sh(script: "docker-compose -f test.json run main npm run ci-lint")
+      }
+      // end of Lint stage
+
       // start of Documentation stage
       stage('Documentation') {
         if(config.documentation) {
           createNodeComposeDocsEnv(config, './documentation.json')
           sh(script: "docker-compose -f documentation.json up --no-start")
           sh(script: "docker-compose -f documentation.json run main npm run docs")
-          sh(script: "docker-compose -f documentation.json rm -s -f")
           createNodeDocumentationGcsBucket(config)
           uploadNodeDocumentation(config)
         } else {
@@ -123,8 +130,20 @@ def call(body) {
     } finally {
       // remove all containers
       sh(script: 'docker-compose -f build.json rm -s -f')
-      if(config.documentation) { sh(script: 'docker-compose -f documentation.json rm -s -f') }
-      if(config.testConfig) { sh(script: 'docker-compose -f test.json rm -s -f') }
+
+      // remove documentation containers
+      if(config.documentation) {
+        if(fileExists('documentation.json')) {
+          sh(script: 'docker-compose -f documentation.json rm -s -f')
+        }
+      }
+
+      // remove test containers
+      if(config.testConfig) {
+        if(fileExists('test.json')) {
+          sh(script: 'docker-compose -f test.json rm -s -f')
+        }
+      }
 
       // sometimes you need to check these files you know
       if(!config.debugMode) {
