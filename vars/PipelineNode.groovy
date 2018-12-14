@@ -158,7 +158,7 @@ def call(body) {
         }
       }
 
-      // remove test containers
+      // remove lint containers
       if(config.runLint) {
         if(fileExists('lint.json')) {
           sh(script: 'docker-compose -f lint.json rm -s -f')
