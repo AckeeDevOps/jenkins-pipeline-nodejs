@@ -50,39 +50,6 @@ def call(body) {
           sh(script: "docker-compose -f test.json up --no-start")
           sh(script: "docker-compose -f test.json run main npm run ci-test")
           sh(script: "docker-compose -f test.json rm -s -f")
-
-          // publish results
-          step([
-            $class: 'JUnitResultArchiver',
-            allowEmptyResults: true,
-            healthScaleFactor: 10.0,
-            keepLongStdio: true,
-            testResults: 'ci-outputs/mocha/test.xml'
-          ])
-          echo "junit finished. currentBuild.result=${currentBuild.result}"
-
-          step([
-            $class: 'CloverPublisher',
-            cloverReportDir: './ci-outputs/coverage',
-            cloverReportFileName: 'clover.xml',
-            failingTarget: [
-              conditionalCoverage: 0,
-              methodCoverage: 0,
-              statementCoverage: 0
-            ],
-            healthyTarget: [
-              conditionalCoverage: 80,
-              methodCoverage: 70,
-              statementCoverage: 80
-            ],
-            unhealthyTarget: [
-              conditionalCoverage: 0,
-              methodCoverage: 0,
-              statementCoverage: 0
-            ]
-          ])
-          echo "CloverPublisher finished. currentBuild.result=${currentBuild.result}"
-
           if (currentBuild.result == 'UNSTABLE') {
             error(message: "Test results are UNSTABLE.")
           }
@@ -140,7 +107,7 @@ def call(body) {
 
         sh(script: deployCommand + " --dry-run")
         if(!config.dryRun) { sh(script: deployCommand) }
-        
+
         // get status of the services within the namespace
         sh(script: "kubectl get svc -n ${config.envDetails.k8sNamespace} -o json | " +
           "jq '.items[] | {name: .metadata.name, ports: .spec.ports[]}'")
@@ -158,7 +125,7 @@ def call(body) {
       sh(script: 'docker-compose -f build.json rm -s -f')
       if(config.documentation) { sh(script: 'docker-compose -f documentation.json rm -s -f') }
       if(config.testConfig) { sh(script: 'docker-compose -f test.json rm -s -f') }
-      
+
       // sometimes you need to check these files you know
       if(!config.debugMode) {
         sh(script: 'rm -rf ./test.json')
@@ -166,15 +133,50 @@ def call(body) {
         sh(script: 'rm -rf ./secrets')
         sh(script: 'rm -rf ./values.json')
       }
-      
+
+      if(config.testConfig) {
+        // publish test results
+        step([
+          $class: 'JUnitResultArchiver',
+          allowEmptyResults: true,
+          healthScaleFactor: 10.0,
+          keepLongStdio: true,
+          testResults: 'ci-outputs/mocha/test.xml'
+        ])
+        echo "junit finished. currentBuild.result=${currentBuild.result}"
+
+        // publish coverage results
+        step([
+          $class: 'CloverPublisher',
+          cloverReportDir: './ci-outputs/coverage',
+          cloverReportFileName: 'clover.xml',
+          failingTarget: [
+            conditionalCoverage: 0,
+            methodCoverage: 0,
+            statementCoverage: 0
+          ],
+          healthyTarget: [
+            conditionalCoverage: 80,
+            methodCoverage: 70,
+            statementCoverage: 80
+          ],
+          unhealthyTarget: [
+            conditionalCoverage: 0,
+            methodCoverage: 0,
+            statementCoverage: 0
+          ]
+        ])
+        echo "CloverPublisher finished. currentBuild.result=${currentBuild.result}"
+      }
+
       // send slack notification
-      if(config.slackChannel) {        
+      if(config.slackChannel) {
         notifyNodeBuild(
           buildStatus: currentBuild.result,
           buildType: 'Build',
           channel: config.slackChannel,
           reason: pipelineStep
-        )        
+        )
       }
     }
   }
