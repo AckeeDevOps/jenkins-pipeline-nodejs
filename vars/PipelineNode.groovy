@@ -64,7 +64,7 @@ def call(body) {
           sh(script: "docker-compose -f lint.json run main npm run ci-lint")
 
           // set correct path to tested files in the lint results
-          sh(script: "sed -i 's#/usr/src/app#${config.workspace}#g' ci-outputs/lint/checkstyle-result.xml")
+          sh(script: "sed -i 's#/usr/src/app/#${config.workspace}/repo/#g' ci-outputs/lint/checkstyle-result.xml")
 
           step([
             $class: 'CheckStylePublisher',
