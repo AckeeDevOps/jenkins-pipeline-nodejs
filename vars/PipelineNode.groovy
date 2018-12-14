@@ -49,9 +49,6 @@ def call(body) {
           createNodeComposeTestEnv(config, './test.json') // create docker-compose file
           sh(script: "docker-compose -f test.json up --no-start")
           sh(script: "docker-compose -f test.json run main npm run ci-test")
-          if (currentBuild.result == 'UNSTABLE') {
-            error(message: "Test results are UNSTABLE.")
-          }
         } else {
           echo "Tests have been skipped based on the Jenkinsfile configuration"
         }
@@ -61,9 +58,11 @@ def call(body) {
       // start of Lint stage
       stage('Lint') {
         pipelineStep = "lint"
-        createNodeComposeLintEnv(config, './lint.json') // create docker-compose file
-        sh(script: "docker-compose -f test.json up --no-start")
-        sh(script: "docker-compose -f test.json run main npm run ci-lint")
+        if(config.runLint) {
+          createNodeComposeLintEnv(config, './lint.json') // create docker-compose file
+          sh(script: "docker-compose -f lint.json up --no-start")
+          sh(script: "docker-compose -f lint.json run main npm run ci-lint")
+        }
       }
       // end of Lint stage
 
@@ -145,6 +144,13 @@ def call(body) {
         }
       }
 
+      // remove test containers
+      if(config.runLint) {
+        if(fileExists('lint.json')) {
+          sh(script: 'docker-compose -f lint.json rm -s -f')
+        }
+      }
+
       // sometimes you need to check these files you know
       if(!config.debugMode) {
         sh(script: 'rm -rf ./test.json')
@@ -186,6 +192,16 @@ def call(body) {
           ]
         ])
         echo "CloverPublisher finished. currentBuild.result=${currentBuild.result}"
+      }
+
+      // publish lint results
+      if(config.runLint) {
+        step([
+          $class: 'CheckStylePublisher',
+          pattern: 'ci-outputs/lint/checkstyle-result.xml',
+          usePreviousBuildAsReference: false,
+          unstableTotalHigh: '0'
+        ])
       }
 
       // send slack notification

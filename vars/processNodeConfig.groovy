@@ -13,8 +13,8 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.appRole = cfg.appRole
   config.appTier = cfg.appTier
   config.dryRun = cfg.dryRun ?: false
+  config.dryRun = cfg.runLint ?: false
   config.startedBy = getAuthorName()
-  config.dryRun = cfg.dryRun ?: false
   config.kubeConfigPathPrefix = cfg.kubeConfigPathPrefix
   config.gcpDockerRegistryPrefix = cfg.gcpDockerRegistryPrefix
   config.sshCredentialsId = cfg.sshCredentialsId
@@ -30,7 +30,7 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.helmChart = getNodeHelmChart(config.envDetails)
   config.testConfig = cfg.testConfig
   config.documentation = cfg.documentation
-  
+
   // process envDetails dry run if specified
   if(config.envDetails.dryRun) { config.dryRun = config.envDetails.dryRun }
 
@@ -59,8 +59,8 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.helmReleaseName = "${config.projectFriendlyName}-" +
     "${config.appName}-" +
     "${config.envDetails.friendlyEnvName}"
-  if(config.envDetails.helmReleasePrefix) { 
-    config.helmReleaseName = config.envDetails.helmReleasePrefix + "-" + config.helmReleaseName 
+  if(config.envDetails.helmReleasePrefix) {
+    config.helmReleaseName = config.envDetails.helmReleasePrefix + "-" + config.helmReleaseName
   }
 
   // set env variables
