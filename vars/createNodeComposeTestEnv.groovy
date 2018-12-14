@@ -34,7 +34,11 @@ def call(Map config, String filename) {
   ]
 
   // remove old builds
-  sh(script: 'rm -rf ./ci-outputs')
+  sh(script: 'rm -rf ./ci-outputs/coverage')
+  sh(script: 'rm -rf ./ci-outputs/mocha')
+
+  // create dir structure
+  sh(script: 'mkdir -p ./ci-outputs')
   sh(script: 'mkdir -p ./ci-outputs/coverage')
   sh(script: 'mkdir -p ./ci-outputs/mocha')
 

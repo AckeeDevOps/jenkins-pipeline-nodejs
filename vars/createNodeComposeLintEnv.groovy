@@ -21,6 +21,9 @@ def call(Map config, String filename) {
 
   // remove old builds
   sh(script: 'rm -rf ./ci-outputs/lint')
+
+  // create dir structure
+  sh(script: 'mkdir -p ./ci-outputs')
   sh(script: 'mkdir -p ./ci-outputs/lint')
 
   def manifest = JsonOutput.toJson(template)
