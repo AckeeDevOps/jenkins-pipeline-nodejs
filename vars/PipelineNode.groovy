@@ -127,8 +127,10 @@ def call(body) {
       println(err.getStackTrace());
       throw err
     } finally {
-      // remove all containers
-      sh(script: 'docker-compose -f build.json rm -s -f')
+      // remove build containers
+      if(fileExists('build.json')) {
+        sh(script: 'docker-compose -f build.json rm -s -f')
+      }
 
       // remove documentation containers
       if(config.documentation) {
