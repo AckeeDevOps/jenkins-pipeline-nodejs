@@ -11,6 +11,7 @@ node() {
   config.slackChannel = "ci-merge-requests"
   // has to be hard-coded here
   config.gitlabCredentialsId = "jenkins-gitlab-credentials"
+  config.workspace = pwd()
 
   config.testConfig = [:]
   config.testConfig.nodeTestEnv = [NODE_ENV: 'test', NODE_PATH: '.']
@@ -114,13 +115,18 @@ node() {
       gitlabCommitStatus(name: "run lint") {
         stage('Run Docker lint') {
           reason='lint'
-          sh(script: "docker-compose -f test.json run main npm run ci-lint")
+          createNodeComposeLintEnv(config, './lint.json')
+          sh(script: "docker-compose -f lint.json up --no-start")
+          sh(script: "docker-compose -f lint.json run main npm run ci-lint")
+
+          // set correct path to tested files in the lint results
+          sh(script: "sed -i 's#/usr/src/app/#${config.workspace}/repo/#g' ci-outputs/lint/checkstyle-result.xml")
 
           step([
             $class: 'CheckStylePublisher',
             failedTotalAll: '0',
             canComputeNew: false,
-            pattern: 'ci-outputs/mocha/checkstyle-result.xml'
+            pattern: 'ci-outputs/lint/checkstyle-result.xml'
           ])
 
           if (currentBuild.result != 'SUCCESS') {
@@ -145,5 +151,7 @@ node() {
 
     // try to remove containers after every run
     sh(script: "docker-compose -f test.json rm -s -f")
+    sh(script: "docker-compose -f lint.json rm -s -f")
+    sh(script: "docker-compose -f build.json rm -s -f")
   }
 }
