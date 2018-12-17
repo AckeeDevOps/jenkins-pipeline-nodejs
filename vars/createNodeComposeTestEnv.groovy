@@ -26,7 +26,7 @@ def call(Map config, String filename) {
         secrets: [], // just array with secret names
         volumes: [
           "./ci-outputs/coverage:/usr/src/app/coverage",
-          "./ci-outputs/mocha:/usr/src/app/output"
+          "./ci-outputs/mocha:/usr/src/app/output",
           "./ci-outputs/npm-logs:/root/.npm/_logs/"
         ]
       ]
