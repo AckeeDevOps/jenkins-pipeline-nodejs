@@ -72,6 +72,8 @@ def call(body) {
             usePreviousBuildAsReference: false,
             unstableTotalHigh: '0'
           ])
+        } else {
+          echo "Lint stage has been skipped based on the Jenkinsfile configuration"
         }
       }
       // end of Lint stage
