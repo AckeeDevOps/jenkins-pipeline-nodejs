@@ -46,10 +46,9 @@ def call(body) {
       stage('Test') {
         pipelineStep = "test"
         if (config.testConfig) {
-          createNodeComposeTestEnv(config, './test.json') // create docker-compose file
+          createNodeComposeTestEnv(config, './test.json')
           sh(script: "docker-compose -f test.json up --no-start")
 
-          // try to execute tests
           try {
             sh(script: "docker-compose -f test.json run main npm run ci-test")
           } finally {
@@ -67,7 +66,7 @@ def call(body) {
       stage('Lint') {
         pipelineStep = "lint"
         if(config.runLint) {
-          createNodeComposeLintEnv(config, './lint.json') // create docker-compose file
+          createNodeComposeLintEnv(config, './lint.json')
           sh(script: "docker-compose -f lint.json up --no-start")
           sh(script: "docker-compose -f lint.json run main npm run ci-lint")
 
