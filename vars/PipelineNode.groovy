@@ -49,48 +49,32 @@ def call(body) {
           createNodeComposeTestEnv(config, './test.json') // create docker-compose file
           sh(script: "docker-compose -f test.json up --no-start")
           sh(script: "docker-compose -f test.json run main npm run ci-test")
-          sh(script: "docker-compose -f test.json rm -s -f")
-
-          // publish results
-          step([
-            $class: 'JUnitResultArchiver',
-            allowEmptyResults: true,
-            healthScaleFactor: 10.0,
-            keepLongStdio: true,
-            testResults: 'ci-outputs/mocha/test.xml'
-          ])
-          echo "junit finished. currentBuild.result=${currentBuild.result}"
-
-          step([
-            $class: 'CloverPublisher',
-            cloverReportDir: './ci-outputs/coverage',
-            cloverReportFileName: 'clover.xml',
-            failingTarget: [
-              conditionalCoverage: 0,
-              methodCoverage: 0,
-              statementCoverage: 0
-            ],
-            healthyTarget: [
-              conditionalCoverage: 80,
-              methodCoverage: 70,
-              statementCoverage: 80
-            ],
-            unhealthyTarget: [
-              conditionalCoverage: 0,
-              methodCoverage: 0,
-              statementCoverage: 0
-            ]
-          ])
-          echo "CloverPublisher finished. currentBuild.result=${currentBuild.result}"
-
-          if (currentBuild.result == 'UNSTABLE') {
-            error(message: "Test results are UNSTABLE.")
-          }
         } else {
           echo "Tests have been skipped based on the Jenkinsfile configuration"
         }
       }
       // end of Test stage
+
+      // start of Lint stage
+      stage('Lint') {
+        pipelineStep = "lint"
+        if(config.runLint) {
+          createNodeComposeLintEnv(config, './lint.json') // create docker-compose file
+          sh(script: "docker-compose -f lint.json up --no-start")
+          sh(script: "docker-compose -f lint.json run main npm run ci-lint")
+
+          // set correct path to tested files in the lint results
+          sh(script: "sed -i 's#/usr/src/app/#${config.workspace}/repo/#g' ci-outputs/lint/checkstyle-result.xml")
+
+          step([
+            $class: 'CheckStylePublisher',
+            pattern: 'ci-outputs/lint/checkstyle-result.xml',
+            usePreviousBuildAsReference: false,
+            unstableTotalHigh: '0'
+          ])
+        }
+      }
+      // end of Lint stage
 
       // start of Documentation stage
       stage('Documentation') {
@@ -98,7 +82,6 @@ def call(body) {
           createNodeComposeDocsEnv(config, './documentation.json')
           sh(script: "docker-compose -f documentation.json up --no-start")
           sh(script: "docker-compose -f documentation.json run main npm run docs")
-          sh(script: "docker-compose -f documentation.json rm -s -f")
           createNodeDocumentationGcsBucket(config)
           uploadNodeDocumentation(config)
         } else {
@@ -140,10 +123,12 @@ def call(body) {
 
         sh(script: deployCommand + " --dry-run")
         if(!config.dryRun) { sh(script: deployCommand) }
-        
+
         // get status of the services within the namespace
+        if(!config.dryRun) {
         sh(script: "kubectl get svc -n ${config.envDetails.k8sNamespace} -o json | " +
           "jq '.items[] | {name: .metadata.name, ports: .spec.ports[]}'")
+        }
       }
       // end of Deploy stage
 
@@ -154,11 +139,32 @@ def call(body) {
       println(err.getStackTrace());
       throw err
     } finally {
-      // remove all containers
-      sh(script: 'docker-compose -f build.json rm -s -f')
-      if(config.documentation) { sh(script: 'docker-compose -f documentation.json rm -s -f') }
-      if(config.testConfig) { sh(script: 'docker-compose -f test.json rm -s -f') }
-      
+      // remove build containers
+      if(fileExists('build.json')) {
+        sh(script: 'docker-compose -f build.json rm -s -f')
+      }
+
+      // remove documentation containers
+      if(config.documentation) {
+        if(fileExists('documentation.json')) {
+          sh(script: 'docker-compose -f documentation.json rm -s -f')
+        }
+      }
+
+      // remove test containers
+      if(config.testConfig) {
+        if(fileExists('test.json')) {
+          sh(script: 'docker-compose -f test.json rm -s -f')
+        }
+      }
+
+      // remove lint containers
+      if(config.runLint) {
+        if(fileExists('lint.json')) {
+          sh(script: 'docker-compose -f lint.json rm -s -f')
+        }
+      }
+
       // sometimes you need to check these files you know
       if(!config.debugMode) {
         sh(script: 'rm -rf ./test.json')
@@ -166,15 +172,50 @@ def call(body) {
         sh(script: 'rm -rf ./secrets')
         sh(script: 'rm -rf ./values.json')
       }
-      
+
+      if(config.testConfig) {
+        // publish test results
+        step([
+          $class: 'JUnitResultArchiver',
+          allowEmptyResults: true,
+          healthScaleFactor: 10.0,
+          keepLongStdio: true,
+          testResults: 'ci-outputs/mocha/test.xml'
+        ])
+        echo "junit finished. currentBuild.result=${currentBuild.result}"
+
+        // publish coverage results
+        step([
+          $class: 'CloverPublisher',
+          cloverReportDir: './ci-outputs/coverage',
+          cloverReportFileName: 'clover.xml',
+          failingTarget: [
+            conditionalCoverage: 0,
+            methodCoverage: 0,
+            statementCoverage: 0
+          ],
+          healthyTarget: [
+            conditionalCoverage: 80,
+            methodCoverage: 70,
+            statementCoverage: 80
+          ],
+          unhealthyTarget: [
+            conditionalCoverage: 0,
+            methodCoverage: 0,
+            statementCoverage: 0
+          ]
+        ])
+        echo "CloverPublisher finished. currentBuild.result=${currentBuild.result}"
+      }
+
       // send slack notification
-      if(config.slackChannel) {        
+      if(config.slackChannel) {
         notifyNodeBuild(
           buildStatus: currentBuild.result,
           buildType: 'Build',
           channel: config.slackChannel,
           reason: pipelineStep
-        )        
+        )
       }
     }
   }
