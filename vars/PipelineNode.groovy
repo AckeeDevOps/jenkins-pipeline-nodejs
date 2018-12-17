@@ -72,13 +72,8 @@ def call(body) {
 
           // set correct path to tested files in the lint results
           sh(script: "sed -i 's#/usr/src/app/#${config.workspace}/repo/#g' ci-outputs/lint/checkstyle-result.xml")
-
-          step([
-            $class: 'CheckStylePublisher',
-            pattern: 'ci-outputs/lint/checkstyle-result.xml',
-            usePreviousBuildAsReference: false,
-            unstableTotalHigh: '0'
-          ])
+          // record lint results
+          recordNodeLintResults()
         } else {
           echo "Lint stage has been skipped based on the Jenkinsfile configuration"
         }
