@@ -48,7 +48,15 @@ def call(body) {
         if (config.testConfig) {
           createNodeComposeTestEnv(config, './test.json') // create docker-compose file
           sh(script: "docker-compose -f test.json up --no-start")
-          sh(script: "docker-compose -f test.json run main npm run ci-test")
+
+          // try to execute tests
+          try {
+            sh(script: "docker-compose -f test.json run main npm run ci-test")
+          } finally {
+            // record tests and coverage results
+            recordNodeTestResults()
+            recordNodeCoverageResults()
+          }
         } else {
           echo "Tests have been skipped based on the Jenkinsfile configuration"
         }
@@ -173,41 +181,6 @@ def call(body) {
         sh(script: 'rm -rf ./build.json')
         sh(script: 'rm -rf ./secrets')
         sh(script: 'rm -rf ./values.json')
-      }
-
-      if(config.testConfig) {
-        // publish test results
-        step([
-          $class: 'JUnitResultArchiver',
-          allowEmptyResults: true,
-          healthScaleFactor: 10.0,
-          keepLongStdio: true,
-          testResults: 'ci-outputs/mocha/test.xml'
-        ])
-        echo "junit finished. currentBuild.result=${currentBuild.result}"
-
-        // publish coverage results
-        step([
-          $class: 'CloverPublisher',
-          cloverReportDir: './ci-outputs/coverage',
-          cloverReportFileName: 'clover.xml',
-          failingTarget: [
-            conditionalCoverage: 0,
-            methodCoverage: 0,
-            statementCoverage: 0
-          ],
-          healthyTarget: [
-            conditionalCoverage: 80,
-            methodCoverage: 70,
-            statementCoverage: 80
-          ],
-          unhealthyTarget: [
-            conditionalCoverage: 0,
-            methodCoverage: 0,
-            statementCoverage: 0
-          ]
-        ])
-        echo "CloverPublisher finished. currentBuild.result=${currentBuild.result}"
       }
 
       // send slack notification
