@@ -128,7 +128,8 @@ def call(body) {
 
         // get status of the services within the namespace
         if(!config.dryRun) {
-        sh(script: "kubectl get svc -n ${config.envDetails.k8sNamespace} -o json | " +
+        sh(script: "kubectl --kubeconfig ${config.kubeConfigPath} " +
+          "get svc -n ${config.envDetails.k8sNamespace} -o json | " +
           "jq '.items[] | {name: .metadata.name, ports: .spec.ports[]}'")
         }
       }
