@@ -25,7 +25,7 @@ def call(body) {
         echo(changelog)
         writeFile(file: "./changelog.txt", text: changelog)
 
-        // set authod name
+        // set author name
         config.startedBy = getNodeAuthorName()
       }
 
