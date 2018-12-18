@@ -20,7 +20,7 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.debugMode = cfg.debugMode ? cfg.debugMode : false
   config.slackChannel = cfg.slackChannel
   config.gitlabTagCredentials = cfg.gitlabTagCredentials // array
-  config.startedBy = getNodeAuthorName()
+  config.startedBy = getNodeAuthorName() // last commit
 
   // process more complex stuff
   config.envDetails = getNodeBranchConfig(cfg, config.branch)

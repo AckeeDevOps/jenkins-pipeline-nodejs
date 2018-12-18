@@ -24,6 +24,9 @@ def call(body) {
         def changelog = getChangelog()
         echo(changelog)
         writeFile(file: "./changelog.txt", text: changelog)
+
+        // set authod name
+        config.startedBy = getNodeAuthorName()
       }
 
       // start of Build stage
