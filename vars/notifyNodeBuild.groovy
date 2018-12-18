@@ -12,7 +12,7 @@ def call( Map args ) {
 
   // Default values
   def author
-  if(args.author) { author = args.author } else { author = getAuthorName() }
+  if(args.author) { author = args.author } else { author = getNodeAuthorName() }
   def workspace = pwd()
   changelogPath = "${workspace}/${changelogPath}"
   def changelog
