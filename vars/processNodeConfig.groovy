@@ -14,12 +14,13 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.appTier = cfg.appTier
   config.dryRun = cfg.dryRun ?: false
   config.runLint = cfg.runLint ?: false
-  config.startedBy = getAuthorName()
   config.kubeConfigPathPrefix = cfg.kubeConfigPathPrefix
   config.gcpDockerRegistryPrefix = cfg.gcpDockerRegistryPrefix
   config.sshCredentialsId = cfg.sshCredentialsId
   config.debugMode = cfg.debugMode ? cfg.debugMode : false
   config.slackChannel = cfg.slackChannel
+  config.gitlabTagCredentials = cfg.gitlabTagCredentials // array
+  dir('repo') { config.startedBy = getAuthorName() }
 
   // process more complex stuff
   config.envDetails = getNodeBranchConfig(cfg, config.branch)

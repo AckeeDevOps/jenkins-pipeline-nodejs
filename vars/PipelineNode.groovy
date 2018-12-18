@@ -102,7 +102,7 @@ def call(body) {
           // get secrets from Vault
           secretData = createNodeSecretsManifest(config)
         } else {
-          echo "Skipping injection of credentials"
+          echo("Skipping injection of credentials")
         }
 
         // create helm values file
@@ -133,6 +133,17 @@ def call(body) {
         }
       }
       // end of Deploy stage
+
+      // start of tag stage
+      stage('Tag') {
+        pipelineStep = "deploy"
+        if(config.gitlabTagCredentials) {
+          createNodeGitlabTag(config)
+        } else {
+          echo("Skipping Gitlab tagging")
+        }
+      }
+      // end of tag stage
 
     } catch(err) {
       currentBuild.result = "FAILURE"
