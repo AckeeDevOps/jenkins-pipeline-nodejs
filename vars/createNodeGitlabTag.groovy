@@ -65,7 +65,7 @@ def call(Map config) {
 
       sh("""
          prettyDate=\$(date +'%H:%M %Y-%m-%d')
-         git tag -a "$newTag" -m "version deployed by $startedBy from branch='$branch' @ \$prettyDate"
+         git tag -a "$newTag" -m "version (build ${config.buildNumber}) deployed by $startedBy from branch='$branch' @ \$prettyDate"
          git push origin "$newTag"
          """)
     }
