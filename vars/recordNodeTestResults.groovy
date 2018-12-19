@@ -1,8 +1,8 @@
-def call() {
+def call(boolean allowEmptyResults, float healthScaleFactor) {
   step([
     $class: 'JUnitResultArchiver',
-    allowEmptyResults: true,
-    healthScaleFactor: 10.0,
+    allowEmptyResults: allowEmptyResults,
+    healthScaleFactor: healthScaleFactor,
     keepLongStdio: true,
     testResults: 'ci-outputs/mocha/test.xml'
   ])

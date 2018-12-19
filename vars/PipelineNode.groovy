@@ -56,7 +56,7 @@ def call(body) {
             sh(script: "docker-compose -f test.json run main npm run ci-test")
           } finally {
             // record tests and coverage results
-            recordNodeTestResults()
+            recordNodeTestResults(true, 10.0)
             recordNodeCoverageResults()
           }
         } else {
