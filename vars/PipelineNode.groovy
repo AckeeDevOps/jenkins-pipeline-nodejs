@@ -49,9 +49,16 @@ def call(body) {
       stage('Test') {
         pipelineStep = "test"
         if (config.testConfig) {
-          createNodeComposeTestEnv(config, './test.json') // create docker-compose file
+          createNodeComposeTestEnv(config, './test.json')
           sh(script: "docker-compose -f test.json up --no-start")
-          sh(script: "docker-compose -f test.json run main npm run ci-test")
+
+          try {
+            sh(script: "docker-compose -f test.json run main npm run ci-test")
+          } finally {
+            // record tests and coverage results
+            recordNodeTestResults()
+            recordNodeCoverageResults()
+          }
         } else {
           echo "Tests have been skipped based on the Jenkinsfile configuration"
         }
@@ -62,19 +69,14 @@ def call(body) {
       stage('Lint') {
         pipelineStep = "lint"
         if(config.runLint) {
-          createNodeComposeLintEnv(config, './lint.json') // create docker-compose file
+          createNodeComposeLintEnv(config, './lint.json')
           sh(script: "docker-compose -f lint.json up --no-start")
           sh(script: "docker-compose -f lint.json run main npm run ci-lint")
 
           // set correct path to tested files in the lint results
           sh(script: "sed -i 's#/usr/src/app/#${config.workspace}/repo/#g' ci-outputs/lint/checkstyle-result.xml")
-
-          step([
-            $class: 'CheckStylePublisher',
-            pattern: 'ci-outputs/lint/checkstyle-result.xml',
-            usePreviousBuildAsReference: false,
-            unstableTotalHigh: '0'
-          ])
+          // record lint results
+          recordNodeLintResults()
         } else {
           echo "Lint stage has been skipped based on the Jenkinsfile configuration"
         }
@@ -188,41 +190,6 @@ def call(body) {
         sh(script: 'rm -rf ./build.json')
         sh(script: 'rm -rf ./secrets')
         sh(script: 'rm -rf ./values.json')
-      }
-
-      if(config.testConfig) {
-        // publish test results
-        step([
-          $class: 'JUnitResultArchiver',
-          allowEmptyResults: true,
-          healthScaleFactor: 10.0,
-          keepLongStdio: true,
-          testResults: 'ci-outputs/mocha/test.xml'
-        ])
-        echo "junit finished. currentBuild.result=${currentBuild.result}"
-
-        // publish coverage results
-        step([
-          $class: 'CloverPublisher',
-          cloverReportDir: './ci-outputs/coverage',
-          cloverReportFileName: 'clover.xml',
-          failingTarget: [
-            conditionalCoverage: 0,
-            methodCoverage: 0,
-            statementCoverage: 0
-          ],
-          healthyTarget: [
-            conditionalCoverage: 80,
-            methodCoverage: 70,
-            statementCoverage: 80
-          ],
-          unhealthyTarget: [
-            conditionalCoverage: 0,
-            methodCoverage: 0,
-            statementCoverage: 0
-          ]
-        ])
-        echo "CloverPublisher finished. currentBuild.result=${currentBuild.result}"
       }
 
       // send slack notification
