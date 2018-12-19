@@ -1,10 +1,10 @@
-def call() {
+def call(boolean allowEmptyResults, float healthScaleFactor, String testResults) {
   step([
     $class: 'JUnitResultArchiver',
-    allowEmptyResults: true,
-    healthScaleFactor: 10.0,
+    allowEmptyResults: allowEmptyResults,
+    healthScaleFactor: healthScaleFactor,
     keepLongStdio: true,
-    testResults: 'ci-outputs/mocha/test.xml'
+    testResults: testResults
   ])
   echo "junit finished. currentBuild.result=${currentBuild.result}"
 }
