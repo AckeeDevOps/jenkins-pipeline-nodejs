@@ -87,25 +87,12 @@ node() {
         stage('Run Docker tests') {
           reason='tests'
           createNodeComposeTestEnv(config, './test.json') // create docker-compose file
-          sh(script: "docker-compose -f test.json up --no-start")
-          sh(script: "docker-compose -f test.json run main npm run ci-test")
-
-          step([
-            $class: 'JUnitResultArchiver',
-            allowEmptyResults: true,
-            healthScaleFactor: 100,
-            keepLongStdio: true,
-            testResults: 'ci-outputs/mocha/test.xml'
-          ])
-
-          step([
-            $class: 'CloverPublisher',
-            cloverReportDir: './ci-outputs/coverage',
-            cloverReportFileName: 'clover.xml'
-          ])
-
-          if (currentBuild.result == 'UNSTABLE') {
-            error "Test results are UNSTABLE (reported result is '${currentBuild.result}')"
+          try {
+            sh(script: "docker-compose -f test.json up --no-start")
+            sh(script: "docker-compose -f test.json run main npm run ci-test")
+          } finally {
+            recordNodeTestResults(true, 100.0)
+            recordNodeCoverageResults()
           }
         }
       }
@@ -121,13 +108,7 @@ node() {
 
           // set correct path to tested files in the lint results
           sh(script: "sed -i 's#/usr/src/app/#${config.workspace}/repo/#g' ci-outputs/lint/checkstyle-result.xml")
-
-          step([
-            $class: 'CheckStylePublisher',
-            failedTotalAll: '0',
-            canComputeNew: false,
-            pattern: 'ci-outputs/lint/checkstyle-result.xml'
-          ])
+          recordNodeLintResults()
 
           if (currentBuild.result != 'SUCCESS') {
             error "Lint results are UNSTABLE (reported result is '${currentBuild.result}')"
