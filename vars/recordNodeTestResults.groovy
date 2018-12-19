@@ -4,7 +4,7 @@ def call(boolean allowEmptyResults, float healthScaleFactor) {
     allowEmptyResults: allowEmptyResults,
     healthScaleFactor: healthScaleFactor,
     keepLongStdio: true,
-    testResults: 'ci-outputs/mocha/test.xml'
+    testResults: 'ci-outputs/junit/test.xml'
   ])
   echo "junit finished. currentBuild.result=${currentBuild.result}"
 }
