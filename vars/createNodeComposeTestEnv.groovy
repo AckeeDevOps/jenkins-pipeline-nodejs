@@ -26,7 +26,7 @@ def call(Map config, String filename) {
         secrets: [], // just array with secret names
         volumes: [
           "./ci-outputs/coverage:/usr/src/app/coverage",
-          "./ci-outputs/mocha:/usr/src/app/output",
+          "./ci-outputs/junit:/usr/src/app/output",
           "./ci-outputs/npm-logs:/root/.npm/_logs/"
         ]
       ]
@@ -36,13 +36,13 @@ def call(Map config, String filename) {
 
   // remove old builds
   sh(script: 'rm -rf ./ci-outputs/coverage')
-  sh(script: 'rm -rf ./ci-outputs/mocha')
+  sh(script: 'rm -rf ./ci-outputs/junit')
   sh(script: 'rm -rf ./ci-outputs/npm-logs')
 
   // create dir structure
   sh(script: 'mkdir -p ./ci-outputs')
   sh(script: 'mkdir -p ./ci-outputs/coverage')
-  sh(script: 'mkdir -p ./ci-outputs/mocha')
+  sh(script: 'mkdir -p ./ci-outputs/junit')
   sh(script: 'mkdir -p ./ci-outputs/npm-logs')
 
   if(config.testConfig.secretsInjection) {
