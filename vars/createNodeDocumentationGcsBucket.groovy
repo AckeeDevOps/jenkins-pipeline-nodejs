@@ -9,9 +9,8 @@ def call(Map config) {
       "-l ${location} " +
       "-p ${config.documentation.gcpProjectId} " +
       "${config.documentation.bucketUrl}"
+    sh(script: command)
   } else {
     echo("Bucket ${config.documentation.bucketUrl} (project: ${config.documentation.gcpProjectId}) already exists.")
   }
-
-  sh(script: command)
 }
