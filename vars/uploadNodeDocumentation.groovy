@@ -7,7 +7,7 @@ def call(Map config) {
     pathPrefix = "${config.projectFriendlyName}-${config.appName}"
   }
 
-  def command = "gsutil cp -r ./docs-output/ " +
+  def command = "gsutil cp -r ./docs-output/. " +
     "${config.documentation.bucketUrl}/" +
     "${pathPrefix}/${config.branch}/"
 
