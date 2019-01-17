@@ -190,6 +190,8 @@ def call(body) {
         sh(script: 'rm -rf ./build.json')
         sh(script: 'rm -rf ./secrets')
         sh(script: 'rm -rf ./values.json')
+      } else {
+        echo("DEBUG MODE: on")
       }
 
       // send slack notification
