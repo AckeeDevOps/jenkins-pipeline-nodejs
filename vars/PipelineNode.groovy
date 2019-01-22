@@ -17,6 +17,10 @@ def call(body) {
       // https://jenkins.io/doc/pipeline/steps/workflow-scm-step/
       stage('Checkout') {
         pipelineStep = "checkout"
+        
+        sh(script: 'git config --global user.email "you@example.com"')
+        sh(script: 'git config --global user.name "Your Name"')
+        
         if (!fileExists('repo')){ new File('repo').mkdir() }
         dir('repo') { checkout scm }
 
