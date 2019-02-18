@@ -57,6 +57,7 @@ def call(Map config, String filename) {
 
       // obtain secrets from Vault
       sh(script: "vaultier")
+      sh(script: "ls -lah ${config.workspace}/secrets-test.json")
     }
 
     // merge obtained Vault values with docker-compose file
