@@ -5,7 +5,7 @@ def call(Map config, String filename) {
   // check Env defined by user in Jenkinsfile
   def initialTestEnv
   if(config.envDetails.nodeTestEnv) {
-    if(config.testConfig.nodeTestEnv instanceof Map) {
+    if(config.envDetails.nodeTestEnv instanceof Map) {
       initialTestEnv = config.envDetails.nodeTestEnv
     } else {
       error(message: "nodeTestEnv should be Map!")
