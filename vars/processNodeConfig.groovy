@@ -85,7 +85,7 @@ def getNodeDockerTag(Map config) {
   tag = "${gcrPrefix}/" +
     "${config.envDetails.gcpProjectId}/" +
     "${config.projectFriendlyName}/" +
-    "${config.appName}:${config.branch.replace("/", "-")}.${buildNumber}"
+    "${config.appName}:${config.branch.replace("/", "-")}.${config.buildNumber}"
   
   // image name should be converted to lowercase
   tag = tag.toLowerCase()
