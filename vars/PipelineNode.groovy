@@ -121,7 +121,7 @@ def call(body) {
         
         def dryRun = config.envDetails.dryRun ?: false
 
-        helmMode = config.envDetails ?: "native"
+        helmMode = config.envDetails.helmMode ?: "native"
         
         if(helmMode == "native") {
           
