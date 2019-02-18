@@ -125,7 +125,7 @@ def call(body) {
           "--set general.gcpProjectId=${config.envDetails.gcpProjectId} " +
           "--namespace ${config.envDetails.k8sNamespace} " +
           "${config.helmReleaseName} " +
-          "${config.helmChart} "       
+          "${config.envDetails.helmChart} "       
         
         // always run dryRun before
         sh(script: deployCommand + " --dry-run")
