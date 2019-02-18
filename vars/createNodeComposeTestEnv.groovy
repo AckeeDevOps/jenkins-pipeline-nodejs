@@ -60,6 +60,7 @@ def call(Map config, String filename) {
     }
   } else {
     echo("No secrets for the ci-test")
+    sh(script: "echo '{}' > secrets-test.json")
   }
 
   def manifest = JsonOutput.toJson(template)
