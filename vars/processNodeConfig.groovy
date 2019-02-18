@@ -41,7 +41,8 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.kubeConfigPath = "${config.envDetails.kubeConfigPathPrefix}/config-${config.envDetails.gcpProjectId}-${config.envDetails.gkeClusterName}"
 
   // get remote image tag
-  config.dockerImageTag = getNodeDockerTag(config)
+  config.dockerImageName = getNodeDockerImage(config)
+  config.dockerImageTag = "${config.branch.replace("/", "-")}.${config.commitHash}"
 
   // apply some sanity checks
   validateEnvDetailsString('k8sNamespace', config)
@@ -85,21 +86,21 @@ def getNodeBranchConfig(Map cfg, branch) {
   }
 }
 
-def getNodeDockerTag(Map config) {
+def getNodeDockerImage(Map config) {
 
   // set default prefix - europe
   def gcrPrefix = config.envDetails.gcpDockerRegistryPrefix ?: "eu.gcr.io"
 
-  tag = "${gcrPrefix}/" +
+  image = "${gcrPrefix}/" +
     "${config.envDetails.gcpProjectId}/" +
     "${config.projectFriendlyName}/" +
-    "${config.appName}:${config.branch.replace("/", "-")}.${config.buildNumber}"
+    "${config.appName}"
   
   // image name should be converted to lowercase
-  tag = tag.toLowerCase()
+  image = image.toLowerCase()
 
-  echo("Docker image tag: ${tag}")
-  return tag
+  echo("Docker image name: ${image}")
+  return image
 }
 
 def validateEnvDetailsString(String input, Map config) {
