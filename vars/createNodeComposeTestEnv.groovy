@@ -57,18 +57,15 @@ def call(Map config, String filename) {
 
       // obtain secrets from Vault
       sh(script: "vaultier")
-      sh(script: "ls -lah ${config.workspace}/secrets-test.json")
     }
-
-    // merge obtained Vault values with docker-compose file
-    echo("merging obtained secrets with docke-compose file ...")
-    def jsonSlurper = new groovy.json.JsonSlurperClassic()
-    def secrets = jsonSlurper.parseText("${config.workspace}/secrets-test.json")    
-    template.services.main.environment += secrets
   } else {
     echo("No secrets for the ci-test")
   }
 
   def manifest = JsonOutput.toJson(template)
-  writeFile(file: filename, text: manifest)
+  writeFile(file: 'test-tmp.json', text: manifest)
+  
+  // merge secrets and docker-compose
+  sh(script: "jq '.services.main.environment += input' test-tmp.json secrets-test.json > ${filename}")
+  sh(script: "cat ${filename}")
 }
