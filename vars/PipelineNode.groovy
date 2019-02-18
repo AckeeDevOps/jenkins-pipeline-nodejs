@@ -107,14 +107,9 @@ def call(body) {
 
         // if specified, obtain secrets
         createNodeSecretsManifest(config)
-
-        // upgrade or install release
-        def deployCommand = "helm upgrade " +
-          "--install " +
-          "--kubeconfig ${config.kubeConfigPath} " +
-          "-f ${config.workspace}/${config.envDetails.helmValues} " +
-          "-f ${config.workspace}/secrets-deployment.json " +
-          "--set general.imageName=${config.dockerImageName} " +
+        
+        // create string with all --set flags so we cab reuse them if needed
+        def setParams = "--set general.imageName=${config.dockerImageName} " +
           "--set general.imageTag=${config.dockerImageTag} " +
           "--set general.appName=${config.appName} " +
           "--set general.projectName=${config.projectFriendlyName} " +
@@ -122,16 +117,24 @@ def call(body) {
           "--set general.meta.buildHash=${config.commitHash} " +
           "--set general.meta.branch=${config.branch} " +
           "--set general.meta.repositoryUrl=${config.repositoryUrl} " +
-          "--set general.gcpProjectId=${config.envDetails.gcpProjectId} " +
+          "--set general.gcpProjectId=${config.envDetails.gcpProjectId} "
+        
+        def dryRun = config.envDetails.dryRun ?: false
+
+        // upgrade or install release
+        def deployCommand = "helm upgrade " +
+          "--install " +
+          "--kubeconfig ${config.kubeConfigPath} " +
+          "-f ${config.workspace}/${config.envDetails.helmValues} " +
+          "-f ${config.workspace}/secrets-deployment.json " +
+          setParams +
+          "--dry-run=${dryRun.toString()} "
           "--namespace ${config.envDetails.k8sNamespace} " +
           "${config.helmReleaseName} " +
-          "${config.envDetails.helmChart} "       
+          "${config.envDetails.helmChart}"       
         
-        // always run dryRun before
-        sh(script: deployCommand + " --dry-run")
-
         // run the final deploy script
-        if(!config.envDetails.dryRun) { sh(script: deployCommand) }
+        sh(script: deployCommand)
 
         // get status of the services within the namespace
         if(!config.envDetails.dryRun) {
