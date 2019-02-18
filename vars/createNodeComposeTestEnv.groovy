@@ -1,4 +1,4 @@
-import groovy.json.JsonSlurperClassic 
+import groovy.json.*
 
 def call(Map config, String filename) {
 
