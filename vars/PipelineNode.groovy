@@ -108,21 +108,25 @@ def call(body) {
         // if specified, obtain secrets
         createNodeSecretsManifest(config)
 
-        // try to create yaml file from template first
-        // this checks whether values.yaml contains required fields
-        def tmplOut = config.envDetails.debugMode ? "./tmpl.out.yaml"  : "/dev/null"
-        sh(script: "helm template -f ./values.json ${config.envDetails.helmChart} -n ${config.helmReleaseName} > ${tmplOut}")
-
         // upgrade or install release
         def deployCommand = "helm upgrade " +
           "--install " +
           "--kubeconfig ${config.kubeConfigPath} " +
           "-f ${config.workspace}/${config.envDetails.helmValues} " +
           "-f ${config.workspace}/secrets-deployment.json " +
+          "--set general.imageName=${config.dockerImageName}" +
+          "--set general.imageTag=${config.dockerImageTag}" +
+          "--set general.appName=${config.appName} " +
+          "--set general.projectName=${config.projectFriendlyName} " +
+          "--set general.environment=${config.envDetails.friendlyEnvName} " +
+          "--set general.meta.buildHash=${config.commitHash} " +
+          "--set general.meta.branch=${config.branch} " +
+          "--set general.meta.repositoryUrl=${config.repositoryUrl} " +
+          "--set general.gcpProjectId=${config.envDetails.gcpProjectId} " +
           "--namespace ${config.envDetails.k8sNamespace} " +
           "${config.helmReleaseName} " +
-          "${config.helmChart} "
-
+          "${config.helmChart} "       
+        
         // always run dryRun before
         sh(script: deployCommand + " --dry-run")
 
