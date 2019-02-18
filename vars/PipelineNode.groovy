@@ -149,6 +149,8 @@ def call(body) {
           
         } else if(helmMode == "template") {
           // tbd, generate and apply template
+        } else {
+          error("unknown helmMode '${helmMode}'")
         }
       }
       // end of Deploy stage
