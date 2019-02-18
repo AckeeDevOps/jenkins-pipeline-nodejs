@@ -5,6 +5,7 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
 
   // process simple stuff first
   config.workspace = pwd()
+  config.startedBy = getNodeAuthorName() // last commit
   config.branch = branch
   config.buildNumber = build
   config.repositoryUrl = repositoryUrl
@@ -15,15 +16,11 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.appRole = cfg.appRole
   config.appTier = cfg.appTier
 
-  config.dryRun = cfg.dryRun ?: false
-  config.runLint = cfg.runLint ?: false
-  config.kubeConfigPathPrefix = cfg.kubeConfigPathPrefix
-  config.gcpDockerRegistryPrefix = cfg.gcpDockerRegistryPrefix
   config.sshCredentialsId = cfg.sshCredentialsId
-  config.debugMode = cfg.debugMode ? cfg.debugMode : false
   config.slackChannel = cfg.slackChannel
   config.gitlabTagCredentials = cfg.gitlabTagCredentials // array
-  config.startedBy = getNodeAuthorName() // last commit
+  
+  // swagger/aglio documentation
   config.documentation = cfg.documentation
 
   // get default configuration for all branches
@@ -33,7 +30,7 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.envDetails = config.envDefaults + getNodeBranchConfig(cfg, config.branch)
 
   // get kubernetes config file path
-  config.kubeConfigPath = "${config.kubeConfigPathPrefix}/config-${config.envDetails.gcpProjectId}-${config.envDetails.gkeClusterName}"
+  config.kubeConfigPath = "${config.envDetails.kubeConfigPathPrefix}/config-${config.envDetails.gcpProjectId}-${config.envDetails.gkeClusterName}"
 
   // get remote image tag
   config.dockerImageTag = getNodeDockerTag(config)

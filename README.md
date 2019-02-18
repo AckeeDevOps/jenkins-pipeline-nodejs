@@ -187,6 +187,8 @@ PipelineNode{
   documentation = [:] // this won't trigger documentation stage
 
   envDefaults = [
+    gcpDockerRegistryPrefix: "eu.gcr.io",
+    kubeConfigPathPrefix: "/home/jenkins/.kube",
     helmChart: "repo/helm/chart/default",
     injectSecretsDeployment: true,
     injectSecretsTest: true, 
@@ -195,7 +197,9 @@ PipelineNode{
     kubeConfigPathPrefix: "/home/jenkins/.kube",
     dryRun: false,
     debugMode: false,
-    nodeTestEnv: [NODE_ENV: 'test', NODE_PATH: '.']
+    nodeTestEnv: [NODE_ENV: 'test', NODE_PATH: '.'],
+    runLint: true,
+    debugMode: false,
   ]
 
   branchEnvs = [:]
