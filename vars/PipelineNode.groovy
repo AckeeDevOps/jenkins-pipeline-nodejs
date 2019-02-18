@@ -52,7 +52,7 @@ def call(body) {
       // start of Test stage
       stage('Test') {
         pipelineStep = "test"
-        if (config.testConfig) {
+        if (config.envDetails.runTests) {
           createNodeComposeTestEnv(config, './test.json')
           sh(script: "docker-compose -f test.json up --no-start")
 
@@ -72,7 +72,7 @@ def call(body) {
       // start of Lint stage
       stage('Lint') {
         pipelineStep = "lint"
-        if(config.runLint) {
+        if(config.envDetails.runLint) {
           createNodeComposeLintEnv(config, './lint.json')
           sh(script: "docker-compose -f lint.json up --no-start")
           sh(script: "docker-compose -f lint.json run main npm run ci-lint")
