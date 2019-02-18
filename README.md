@@ -186,6 +186,7 @@ PipelineNode{
   sshCredentialsId = "jenkins-ssh-key"
   documentation = [:] // this won't trigger documentation stage
 
+  // following properties can be passed to certain environments (below)
   envDefaults = [
     gcpDockerRegistryPrefix: "eu.gcr.io",
     kubeConfigPathPrefix: "/home/jenkins/.kube",
