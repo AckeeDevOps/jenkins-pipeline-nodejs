@@ -52,7 +52,7 @@ def call(Map config, String filename) {
       env.VAULTIER_BRANCH = config.branch
       env.VAULTIER_RUN_CAUSE = "test"
       env.VAULTIER_OUTPUT_FORMAT = "dotenv"
-      env.VAULTIER_SECRET_SPECS_PATH = "${config.workspace}/repo/secrets.yaml"
+      env.VAULTIER_SECRET_SPECS_PATH = config.envDetails.secretSpecsPath ?: "${config.workspace}/repo/secrets.yaml"
       env.VAULTIER_SECRET_OUTPUT_PATH = "${config.workspace}/secrets-test.json"
 
       // obtain secrets from Vault
