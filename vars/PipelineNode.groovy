@@ -128,7 +128,7 @@ def call(body) {
           "-f ${config.workspace}/${config.envDetails.helmValues} " +
           "-f ${config.workspace}/secrets-deployment.json " +
           setParams +
-          "--dry-run=${dryRun.toString()} "
+          "--dry-run=${dryRun.toString()} " +
           "--namespace ${config.envDetails.k8sNamespace} " +
           "${config.helmReleaseName} " +
           "${config.envDetails.helmChart}"       
