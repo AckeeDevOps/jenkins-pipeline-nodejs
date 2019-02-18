@@ -61,7 +61,8 @@ def call(Map config, String filename) {
 
     // merge obtained Vault values with docker-compose file
     echo("merging obtained secrets with docke-compose file ...")
-    secrets = readJSON(file: "${config.workspace}/secrets-test.json")
+    def jsonSlurper = new JsonSlurper()
+    def secrets = jsonSlurper.parseText(new File("${config.workspace}/secrets-test.json").text)    
     template.services.main.environment += secrets
   } else {
     echo("No secrets for the ci-test")
