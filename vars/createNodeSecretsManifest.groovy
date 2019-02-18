@@ -16,5 +16,8 @@ def call(Map config) {
     }
   } else {
     echo("No secrets for the deployment")
+    
+    // create empty file so pipeline won't fail
+    sh(script: "echo '{\"secrets\": null}' > secrets-deployment.json")
   }
 }
