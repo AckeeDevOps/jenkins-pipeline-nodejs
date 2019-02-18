@@ -67,5 +67,7 @@ def call(Map config, String filename) {
   
   // merge secrets and docker-compose
   sh(script: "jq '.services.main.environment += input' test-tmp.json secrets-test.json > ${filename}")
-  sh(script: "cat ${filename}")
+  
+  // remove unneeded files
+  if(!config.envDetails.debugMode){ sh(script: "rm -rf test-tmp.json secrets-test.json") }
 }
