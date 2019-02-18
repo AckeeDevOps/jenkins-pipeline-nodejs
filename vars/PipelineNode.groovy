@@ -131,10 +131,10 @@ def call(body) {
         sh(script: deployCommand + " --dry-run")
 
         // run the final deploy script
-        if(!config.dryRun) { sh(script: deployCommand) }
+        if(!config.envDetails.dryRun) { sh(script: deployCommand) }
 
         // get status of the services within the namespace
-        if(!config.dryRun) {
+        if(!config.envDetails.dryRun) {
         sh(script: "kubectl --kubeconfig ${config.kubeConfigPath} " +
           "get svc -n ${config.envDetails.k8sNamespace} -o json | " +
           "jq '.items[] | {name: .metadata.name, ports: .spec.ports[]}'")
@@ -187,7 +187,7 @@ def call(body) {
       }
 
       // sometimes you need to check these files you know
-      if(!config.debugMode) {
+      if(!config.envDetails.debugMode) {
         sh(script: 'rm -rf ./test.json')
         sh(script: 'rm -rf ./build.json')
         sh(script: 'rm -rf ./secrets')
