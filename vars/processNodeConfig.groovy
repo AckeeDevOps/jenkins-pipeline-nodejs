@@ -10,6 +10,14 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.buildNumber = build
   config.repositoryUrl = repositoryUrl
   
+  // get short SHA hash
+  dir('repo') {
+    config.commitHash = sh(
+      script: "printf \$(git rev-parse --short ${GIT_COMMIT})",
+      returnStdout: true
+    )
+  }
+  
   // app specific stuff
   config.projectFriendlyName = cfg.projectFriendlyName  
   config.appName = cfg.appName
