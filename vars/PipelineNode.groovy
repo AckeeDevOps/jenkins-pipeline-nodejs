@@ -121,26 +121,34 @@ def call(body) {
         
         def dryRun = config.envDetails.dryRun ?: false
 
-        // upgrade or install release
-        def deployCommand = "helm upgrade " +
-          "--install " +
-          "--kubeconfig ${config.kubeConfigPath} " +
-          "-f ${config.workspace}/${config.envDetails.helmValues} " +
-          "-f ${config.workspace}/secrets-deployment.json " +
-          setParams +
-          "--dry-run=${dryRun.toString()} " +
-          "--namespace ${config.envDetails.k8sNamespace} " +
-          "${config.helmReleaseName} " +
-          "${config.envDetails.helmChart}"       
+        helmMode = config.envDetails ?: "native"
         
-        // run the final deploy script
-        sh(script: deployCommand)
+        if(helmMode == "native") {
+          
+          // upgrade or install release
+          def deployCommand = "helm upgrade " +
+            "--install " +
+            "--kubeconfig ${config.kubeConfigPath} " +
+            "-f ${config.workspace}/${config.envDetails.helmValues} " +
+            "-f ${config.workspace}/secrets-deployment.json " +
+            setParams +
+            "--dry-run=${dryRun.toString()} " +
+            "--namespace ${config.envDetails.k8sNamespace} " +
+            "${config.helmReleaseName} " +
+            "${config.envDetails.helmChart}"       
 
-        // get status of the services within the namespace
-        if(!config.envDetails.dryRun) {
-        sh(script: "kubectl --kubeconfig ${config.kubeConfigPath} " +
-          "get svc -n ${config.envDetails.k8sNamespace} -o json | " +
-          "jq '.items[] | {name: .metadata.name, ports: .spec.ports[]}'")
+          // run the final deploy script
+          sh(script: deployCommand)
+          
+          // get status of the services within the namespace
+          if(!config.envDetails.dryRun) {
+          sh(script: "kubectl --kubeconfig ${config.kubeConfigPath} " +
+            "get svc -n ${config.envDetails.k8sNamespace} -o json | " +
+            "jq '.items[] | {name: .metadata.name, ports: .spec.ports[]}'")
+          }
+          
+        } else if(helmMode == "template") {
+          // tbd, generate and apply template
         }
       }
       // end of Deploy stage
