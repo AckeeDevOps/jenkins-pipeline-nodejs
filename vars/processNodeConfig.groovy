@@ -43,6 +43,7 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   // get remote image tag
   config.dockerImageName = getNodeDockerImage(config)
   config.dockerImageTag = "${config.branch.replace("/", "-")}.${config.commitHash}"
+  echo("image name/tag: ${dockerImageName}:${dockerImageTag}")
 
   // apply some sanity checks
   validateEnvDetailsString('k8sNamespace', config)
