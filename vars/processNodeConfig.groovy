@@ -13,7 +13,7 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   // get short SHA hash
   dir('repo') {
     config.commitHash = sh(
-      script: "git describe --always",
+      script: "git rev-parse --short HEAD",
       returnStdout: true
     ).trim()
   }
