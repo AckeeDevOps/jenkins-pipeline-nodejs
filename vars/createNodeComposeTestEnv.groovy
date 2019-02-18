@@ -1,4 +1,4 @@
-import groovy.json.*
+import groovy.json.JsonSlurperClassic 
 
 def call(Map config, String filename) {
 
@@ -62,8 +62,8 @@ def call(Map config, String filename) {
 
     // merge obtained Vault values with docker-compose file
     echo("merging obtained secrets with docke-compose file ...")
-    def jsonSlurper = new JsonSlurper()
-    def secrets = jsonSlurper.parseText(new File("${config.workspace}/secrets-test.json").text)    
+    def jsonSlurper = new groovy.json.JsonSlurperClassic()
+    def secrets = jsonSlurper.parseText("${config.workspace}/secrets-test.json")    
     template.services.main.environment += secrets
   } else {
     echo("No secrets for the ci-test")
