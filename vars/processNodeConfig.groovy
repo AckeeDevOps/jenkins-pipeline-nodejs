@@ -97,10 +97,7 @@ def getNodeDockerImage(Map config) {
     "${config.appName}"
   
   // image name should be converted to lowercase
-  image = image.toLowerCase()
-
-  echo("Docker image name: ${image}")
-  return image
+  return image.toLowerCase()
 }
 
 def validateEnvDetailsString(String input, Map config) {
