@@ -8,10 +8,13 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.branch = branch
   config.buildNumber = build
   config.repositoryUrl = repositoryUrl
-  config.projectFriendlyName = cfg.projectFriendlyName
+  
+  // app specific stuff
+  config.projectFriendlyName = cfg.projectFriendlyName  
   config.appName = cfg.appName
   config.appRole = cfg.appRole
   config.appTier = cfg.appTier
+
   config.dryRun = cfg.dryRun ?: false
   config.runLint = cfg.runLint ?: false
   config.kubeConfigPathPrefix = cfg.kubeConfigPathPrefix
@@ -21,34 +24,27 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.slackChannel = cfg.slackChannel
   config.gitlabTagCredentials = cfg.gitlabTagCredentials // array
   config.startedBy = getNodeAuthorName() // last commit
-
-  // process more complex stuff
-  config.envDetails = getNodeBranchConfig(cfg, config.branch)
-  config.kubeConfigPath = getNodeKubeConfigPath(cfg, config.envDetails)
-  config.dockerImageTag = getNodeDockerTag(cfg, config.envDetails, config.branch, config.buildNumber)
-  config.secretsInjection = config.envDetails.secretsInjection
-  config.helmValues = getNodeHelmValues(config.envDetails)
-  config.helmChart = getNodeHelmChart(config.envDetails)
-  config.testConfig = cfg.testConfig
   config.documentation = cfg.documentation
 
-  // process envDetails dry run if specified
-  if(config.envDetails.dryRun) { config.dryRun = config.envDetails.dryRun }
+  // get default configuration for all branches
+  config.envDefaults = cfg.envDefaults ? cfg.envDefaults : [:]
+  
+  // merge defaults with the actual values, actual values have always precedence
+  config.envDetails = config.envDefaults + getNodeBranchConfig(cfg, config.branch)
+
+  // get kubernetes config file path
+  config.kubeConfigPath = "${config.kubeConfigPathPrefix}/config-${config.envDetails.gcpProjectId}-${config.envDetails.gkeClusterName}"
+
+  // get remote image tag
+  config.dockerImageTag = getNodeDockerTag(config)
 
   // apply some sanity checks
   validateEnvDetailsString('k8sNamespace', config)
   validateEnvDetailsString('friendlyEnvName', config)
   validateEnvDetailsString('gcpProjectId', config)
   validateEnvDetailsString('helmChart', config)
-
-  // check values of configuration objects if they exist
-  // secrets injection part
-  echo("Validating secretsInjection for the current env.")
-  if(config.secretsInjection) { validateSecretsInjection(config.secretsInjection) }
-  echo("Validating secretsInjection for the test env.")
-  if(config.testConfig) {
-    if(config.testConfig.secretsInjection) { validateSecretsInjection(config.testConfig.secretsInjection) }
-  }
+  validateEnvDetailsString('helmValues', config)
+  validateEnvDetailsString('gkeClusterName', config)
 
   // check documenation values
   if(config.documenation) {
@@ -60,6 +56,8 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.helmReleaseName = "${config.projectFriendlyName}-" +
     "${config.appName}-" +
     "${config.envDetails.friendlyEnvName}"
+
+  // if needed, you can set helm release prefix
   if(config.envDetails.helmReleasePrefix) {
     config.helmReleaseName = config.envDetails.helmReleasePrefix + "-" + config.helmReleaseName
   }
@@ -82,53 +80,21 @@ def getNodeBranchConfig(Map cfg, branch) {
   }
 }
 
-def getNodeKubeConfigPath(Map cfg, Map envDetails) {
-  if(envDetails.kubeConfigPath) {
-    // use explicitly specified kube config path if specified
-    return envDetails.kubeConfigPath
-  } else {
-    return "${cfg.kubeConfigPathPrefix}/config-${envDetails.gcpProjectId}-${envDetails.gkeClusterName}"
-  }
-}
+def getNodeDockerTag(Map config) {
 
-def getNodeDockerTag(Map cfg, Map envDetails, branch, buildNumber) {
-  tag = "${cfg.gcpDockerRegistryPrefix}/" +
-    "${envDetails.gcpProjectId}/" +
-    "${cfg.projectFriendlyName}/" +
-    "${cfg.appName}:${branch.replace("/", "-")}.${buildNumber}"
+  // set default prefix - europe
+  def gcrPrefix = config.envDetails.gcpDockerRegistryPrefix ?: "eu.gcr.io"
+
+  tag = "${gcrPrefix}/" +
+    "${config.envDetails.gcpProjectId}/" +
+    "${config.projectFriendlyName}/" +
+    "${config.appName}:${config.branch.replace("/", "-")}.${buildNumber}"
+  
+  // image name should be converted to lowercase
   tag = tag.toLowerCase()
-  echo "Docker image tag: ${tag}"
+
+  echo("Docker image tag: ${tag}")
   return tag
-}
-
-def getNodeHelmValues(Map envDetails) {
-  if(envDetails.helmValues) {
-    return envDetails.helmValues
-  } else {
-    return [:]
-  }
-}
-
-def getNodeHelmChart(Map envDetails) {
-  if(envDetails.helmChart) {
-    return envDetails.helmChart
-  } else {
-    error(message: "No helmChart provided.")
-  }
-}
-
-def validateSecretsInjection(Map secretsInjection) {
-  if(!secretsInjection.jenkinsCredentialsId) { error(message: "secretsInjection/jenkinsCredentialsId must be set") }
-  if(!secretsInjection.vaultUrl) { error(message: "secretsInjection/vaultUrl must be set") }
-  if(!secretsInjection.secrets) { error(message: "secretsInjection/secrets must be set") }
-  for(s in secretsInjection.secrets) {
-    if(!s.vaultSecretPath) { error(message: "secretsInjection/secrets[]/vaultSecretPath must be set") }
-    if(!s.keyMap) { error(message: "secretsInjection/secrets[]/keyMap[] must be set") }
-    for(k in s.keyMap) {
-      if(!k.vault) { error(message: "secretsInjection/secrets[]/keyMap[]/vault must be set") }
-      if(!k.local) { error(message: "secretsInjection/secrets[]/keyMap[]/local must be set") }
-    }
-  }
 }
 
 def validateEnvDetailsString(String input, Map config) {

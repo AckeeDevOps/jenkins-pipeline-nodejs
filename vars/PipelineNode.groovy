@@ -11,7 +11,7 @@ def call(body) {
     // set current step for the notification handler
     def pipelineStep = "start"
     def repositoryUrl = scm.getUserRemoteConfigs()[0].getUrl()
-    def config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER, repositoryUrl)
+    def config = [:]
 
     try {
       // https://jenkins.io/doc/pipeline/steps/workflow-scm-step/
@@ -21,7 +21,7 @@ def call(body) {
         sh(script: 'git config --global user.email "you@example.com"')
         sh(script: 'git config --global user.name "Your Name"')
         
-        if (!fileExists('repo')){ new File('repo').mkdir() }
+        if (!fileExists('repo')){ sh(script: "mkdir -p repo") }
         dir('repo') { checkout scm }
 
         // create a changelog
@@ -29,8 +29,8 @@ def call(body) {
         echo(changelog)
         writeFile(file: "./changelog.txt", text: changelog)
 
-        // set author name
-        config.startedBy = getNodeAuthorName()
+        // process config
+        config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER, repositoryUrl)
       }
 
       // start of Build stage
@@ -106,33 +106,27 @@ def call(body) {
         pipelineStep = "deploy"
 
         // if specified, obtain secrets
-        def secretData
-        if(config.secretsInjection) {
-          // get secrets from Vault
-          secretData = createNodeSecretsManifest(config)
-        } else {
-          echo("Skipping injection of credentials")
-        }
-
-        // create helm values file
-        def helmValuesJson = createNodeHelmValues(config, secretData)
-        writeFile(file: "./values.json", text: helmValuesJson)
+        createNodeSecretsManifest(config)
 
         // try to create yaml file from template first
         // this checks whether values.yaml contains required fields
-        def tmplOut = config.debugMode ? "./tmpl.out.yaml"  : "/dev/null"
-        sh(script: "helm template -f ./values.json ${config.helmChart} -n ${config.helmReleaseName} > ${tmplOut}")
+        def tmplOut = config.envDetails.debugMode ? "./tmpl.out.yaml"  : "/dev/null"
+        sh(script: "helm template -f ./values.json ${config.envDetails.helmChart} -n ${config.helmReleaseName} > ${tmplOut}")
 
         // upgrade or install release
         def deployCommand = "helm upgrade " +
           "--install " +
           "--kubeconfig ${config.kubeConfigPath} " +
-          "-f ./values.json " +
+          "-f ${config.workspace}/${config.envDetails.helmValues} " +
+          "-f ${config.workspace}/secrets-deployment.json " +
           "--namespace ${config.envDetails.k8sNamespace} " +
           "${config.helmReleaseName} " +
           "${config.helmChart} "
 
+        // always run dryRun before
         sh(script: deployCommand + " --dry-run")
+
+        // run the final deploy script
         if(!config.dryRun) { sh(script: deployCommand) }
 
         // get status of the services within the namespace

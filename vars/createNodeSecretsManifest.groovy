@@ -1,39 +1,20 @@
-import groovy.json.*
-
 def call(Map config) {
-  // prepare data structure for obtainNodeVaultSecrets function
-  def secrets = []
-  for(c in config.secretsInjection.secrets){
-    secrets.push([path: c.vaultSecretPath, keyMap: c.keyMap])
-  }
 
-  // obtain data from vault
-  def secretData = obtainNodeVaultSecrets(
-    config.secretsInjection.vaultUrl,
-    secrets,
-    config.secretsInjection.jenkinsCredentialsId
-  )
+  if(config.envDetails.injectSecretsDeployment) {
+    // set vaultier PARAMS first
+    withCredentials([string(credentialsId: config.envDetails.vaultTokenSecretId, variable: 'VAULT_TOKEN')]) {
+      env.VAULTIER_VAULT_ADDR = config.envDetails.vaultAddr
+      env.VAULTIER_VAULT_TOKEN = env.VAULT_TOKEN
+      env.VAULTIER_BRANCH = config.branch
+      env.VAULTIER_RUN_CAUSE = "delivery"
+      env.VAULTIER_OUTPUT_FORMAT = "helm"
+      env.VAULTIER_SECRET_SPECS_PATH = "${config.workspace}/repo/secrets.yaml"
+      env.VAULTIER_SECRET_OUTPUT_PATH = "${config.workspace}/secrets-deployment.json"
 
-  def outputData = [:]
-
-  // prepare structure here
-  for(c in config.secretsInjection.secrets){
-    for(k in c.keyMap) {
-      // select data from the obtained Map according to configuration
-      if(secretData."${k.local}"){
-        kuberneteDataPlain = secretData."${k.local}"
-
-        // convert data to the base64 format
-        kubernetesData = kuberneteDataPlain.toString().bytes.encodeBase64().toString()
-
-        // push a new key to the kubernetes manifest template
-        outputData.put(k.local, kubernetesData)
-      } else {
-        error "${k.vault} @ ${c.vaultSecretPath} seems to be non-existent!"
-      }
+      // obtain secrets from Vault
+      sh(script: "vaultier")
     }
+  } else {
+    echo("No secrets for the deployment")
   }
-
-  // serialize template to json so we can push it to Kubernetes
-  return outputData
 }
