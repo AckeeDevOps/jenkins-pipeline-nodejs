@@ -45,7 +45,7 @@ def call(body) {
       stage('Push image') {
         pipelineStep = "push image"
         sh(script: "gcloud auth configure-docker --configuration ${config.envDetails.gcpProjectId}")
-        sh(script: "docker push ${config.dockerImageTag}")
+        sh(script: "docker push ${config.dockerImageName}:${config.dockerImageTag}")
       }
       // end of Docker push image stage
 
