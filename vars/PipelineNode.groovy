@@ -114,8 +114,8 @@ def call(body) {
           "--kubeconfig ${config.kubeConfigPath} " +
           "-f ${config.workspace}/${config.envDetails.helmValues} " +
           "-f ${config.workspace}/secrets-deployment.json " +
-          "--set general.imageName=${config.dockerImageName}" +
-          "--set general.imageTag=${config.dockerImageTag}" +
+          "--set general.imageName=${config.dockerImageName} " +
+          "--set general.imageTag=${config.dockerImageTag} " +
           "--set general.appName=${config.appName} " +
           "--set general.projectName=${config.projectFriendlyName} " +
           "--set general.environment=${config.envDetails.friendlyEnvName} " +
