@@ -57,6 +57,12 @@ def call(Map config, String filename) {
 
       // obtain secrets from Vault
       sh(script: "vaultier")
+
+      // add volume with JSON file to compose manifest
+      template.services.main.volumes.add("${config.workspace}/secrets-test.json:/etc/secrets/cfg.json")
+      
+      // specify path to JSON file
+      template.services.main.environment.CFG_JSON_PATH = "/etc/secrets/cfg.json"
     }
   } else {
     echo("No secrets for the ci-test")
