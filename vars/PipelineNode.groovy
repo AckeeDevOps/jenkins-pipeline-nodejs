@@ -119,8 +119,7 @@ def call(body) {
           "--set general.meta.repositoryUrl=${config.repositoryUrl} " +
           "--set general.gcpProjectId=${config.envDetails.gcpProjectId} "
         
-        def dryRun = config.envDetails.dryRun ?: false
-
+        def dryRun = config.envDetails.dryRun ?: false // prepare string for --dry-run flags
         helmMode = config.envDetails.helmMode ?: "native"
         
         if(helmMode == "native") {
@@ -140,14 +139,8 @@ def call(body) {
           // run the final deploy script
           sh(script: deployCommand)
           
-          // get status of the services within the namespace
-          if(!config.envDetails.dryRun) {
-          sh(script: "kubectl --kubeconfig ${config.kubeConfigPath} " +
-            "get svc -n ${config.envDetails.k8sNamespace} -o json | " +
-            "jq '.items[] | {name: .metadata.name, ports: .spec.ports[]}'")
-          }
-          
         } else if(helmMode == "template") {
+          
           // create long Yaml with all Kubernetes resources
           def templateCommand = "helm template " +
             "-f ${config.workspace}/${config.envDetails.helmValues} " +
@@ -158,9 +151,26 @@ def call(body) {
             "> ./helm-template.yaml"
           sh(script: templateCommand)
           
+          // apply Kubernetes manifest
+          def deployCommand = "kubectl " +
+            "--kubeconfig ${config.kubeConfigPath} " +
+            "apply " +
+            "-f ./helm-template.yaml " +
+            "-n ${config.envDetails.k8sNamespace} " +
+            "--dry-run=${dryRun}"
+          
           // execute kubectl apply
+          sh(script: deployCommand)
+          
         } else {
           error("unknown helmMode '${helmMode}'")
+        }
+        
+        // get status of the services within the namespace
+        if(!config.envDetails.dryRun) {
+        sh(script: "kubectl --kubeconfig ${config.kubeConfigPath} " +
+          "get svc -n ${config.envDetails.k8sNamespace} -o json | " +
+          "jq '.items[] | {name: .metadata.name, ports: .spec.ports[]}'")
         }
       }
       // end of Deploy stage
