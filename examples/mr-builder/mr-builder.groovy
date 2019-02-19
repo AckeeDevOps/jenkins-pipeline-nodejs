@@ -1,4 +1,4 @@
-@Library('jenkins-pipeline-nodejs@master') _
+@Library('jenkins-pipeline-nodejs@featue/simplify') _
 
 env.SLACK_CHANNEL = "ci-merge-requests"
 node() {
@@ -7,14 +7,21 @@ node() {
   def config = [:]
   // these two params can be overwritten from test.cfg.groovy
   config.sshCredentialsId = "jenkins-ssh-key"
-  config.dockerImageTag = "test-nodejs"
+  config.dockerImageName = "test-nodejs"
+  config.dockerImageTag = "latest"
   config.slackChannel = "ci-merge-requests"
+  
   // has to be hard-coded here
   config.gitlabCredentialsId = "jenkins-gitlab-credentials"
   config.workspace = pwd()
 
-  config.testConfig = [:]
-  config.testConfig.nodeTestEnv = [NODE_ENV: 'test', NODE_PATH: '.']
+  config.envDetails = [:]
+  config.envDetails.nodeTestEnv = [NODE_ENV: 'test', NODE_PATH: '.']
+  config.envDetails.injectSecretsTest = false
+  config.envDetails.vaultTokenSecretId = null
+  config.envDetails.vaultAddr = null
+  config.envDetails.secretSpecsPath = null
+  config.envDetails.debugMode = false
 
   try {
     gitlabBuilds(builds: ["build docker image", "run tests", "run lint"]) {
@@ -65,7 +72,16 @@ node() {
 
           // overwrite default values if specified
           if(config.testConfig.sshCredentialsId) { config.sshCredentialsId = config.testConfig.sshCredentialsId }
-          if(config.testConfig.slackChannel) { config.slackChannel =  config.testConfig.slackChannel}
+          if(config.testConfig.slackChannel) { config.slackChannel =  config.testConfig.slackChannel }
+          
+          // overwrite envDetails
+          if(config.testConfig.nodeTestEnv) { config.envDetails.nodeTestEnv = config.testConfig.nodeTestEnv }
+          if(config.testConfig.injectSecretsTest) { config.envDetails.injectSecretsTest = config.testConfig.injectSecretsTest }
+          if(config.testConfig.vaultTokenSecretId) { config.envDetails.vaultTokenSecretId = config.testConfig.vaultTokenSecretId }
+          if(config.testConfig.secretSpecsPath) { config.envDetails.secretSpecsPath = config.testConfig.secretSpecsPath }
+          if(config.testConfig.debugMode) { config.envDetails.debugMode = config.testConfig.debugMode }
+          if(config.testConfig.vaultAddr) { config.envDetails.vaultAddr = config.testConfig.vaultAddr }
+
         } else {
           echo("Test configuration file does not exist.")
         }
