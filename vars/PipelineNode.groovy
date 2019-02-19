@@ -225,6 +225,10 @@ def call(body) {
         sh(script: 'rm -rf ./build.json')
         sh(script: 'rm -rf ./secrets')
         sh(script: 'rm -rf ./values.json')
+        sh(script: 'rm -rf ./secrets-deployment.json')
+        sh(script: 'rm -rf ./secrets-test.json')
+        sh(script: 'rm -rf ./test-tmp.json')
+        sh(script: 'rm -rf ./helm-template.yaml')
       } else {
         echo("DEBUG MODE: on")
       }
