@@ -154,6 +154,7 @@ def call(body) {
             "-f ${config.workspace}/secrets-deployment.json " +
             setParams +
             "-n ${config.helmReleaseName} " +
+            "${config.envDetails.helmChart} " +
             "> ./helm-template.yaml"
           sh(script: templateCommand)
           
