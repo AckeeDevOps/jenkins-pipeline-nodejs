@@ -148,7 +148,16 @@ def call(body) {
           }
           
         } else if(helmMode == "template") {
-          // tbd, generate and apply template
+          // create long Yaml with all Kubernetes resources
+          def templateCommand = "helm template " +
+            "-f ${config.workspace}/${config.envDetails.helmValues} " +
+            "-f ${config.workspace}/secrets-deployment.json " +
+            setParams +
+            "-n ${config.helmReleaseName} " +
+            "> ./helm-template.yaml"
+          sh(script: templateCommand)
+          
+          // execute kubectl apply
         } else {
           error("unknown helmMode '${helmMode}'")
         }
