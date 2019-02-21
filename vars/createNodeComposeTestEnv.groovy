@@ -47,6 +47,7 @@ def call(Map config, String filename) {
   if(config.envDetails.injectSecretsTest) {
     // set vaultier PARAMS first
     withCredentials([string(credentialsId: config.envDetails.vaultTokenSecretId, variable: 'VAULT_TOKEN')]) {
+      // see https://github.com/AckeeDevOps/vaultier
       env.VAULTIER_VAULT_ADDR = config.envDetails.vaultAddr
       env.VAULTIER_VAULT_TOKEN = env.VAULT_TOKEN
       env.VAULTIER_BRANCH = config.branch
@@ -54,9 +55,17 @@ def call(Map config, String filename) {
       env.VAULTIER_OUTPUT_FORMAT = "dotenv"
       env.VAULTIER_SECRET_SPECS_PATH = config.envDetails.secretSpecsPath ?: "${config.workspace}/repo/secrets.yaml"
       env.VAULTIER_SECRET_OUTPUT_PATH = "${config.workspace}/secrets-test.json"
+      
+      // see https://github.com/AckeeDevOps/envdocksec
+      env.ENVDOCKSEC_INPUT_FILE = "${config.workspace}/secrets-test.json"
+      env.ENVDOCKSEC_OUTPUT_DIRECTORY = "${config.workspace}/secrets"
+      env.ENVDOCKSEC_OUTPUT_MANIFEST = "${config.workspace}/test-volumes.json"
+      env.ENVDOCKSEC_DOCKER_TARGET_DIRECTORY = "/etc/secrets"
+      env.ENVDOCKSEC_CREATE_OUTPUT_DIRECTORY = "true"
 
       // obtain secrets from Vault
-      sh(script: "vaultier")
+      sh(script: "vaultier") // see https://github.com/AckeeDevOps/vaultier
+      sh(script: "envdocksec") // see https://github.com/AckeeDevOps/envdocksec
 
       // add volume with JSON file to compose manifest
       template.services.main.volumes.add("${config.workspace}/secrets-test.json:/etc/secrets/cfg.json")
@@ -67,13 +76,16 @@ def call(Map config, String filename) {
   } else {
     echo("No secrets for the ci-test")
     sh(script: "echo '{}' > secrets-test.json")
+    sh(script: "echo '[]' > test-volumes.json")
   }
 
   def manifest = JsonOutput.toJson(template)
   writeFile(file: 'test-tmp.json', text: manifest)
   
   // merge secrets and docker-compose
-  sh(script: "jq '.services.main.environment += input' test-tmp.json secrets-test.json > ${filename}")
+  sh(script: "jq '.services.main.environment += input' test-tmp.json secrets-test.json > test-tmp1.json")
+  // append volumes with secrets
+  sh(script: "jq '.services.main.volumes += input' test-tmp1.json test-volumes.json > ${filename}")
   
   // remove unneeded files
   if(!config.envDetails.debugMode){ sh(script: "rm -rf test-tmp.json secrets-test.json") }
