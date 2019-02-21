@@ -28,6 +28,10 @@ node() {
 
       // start of checkout stage
       stage('Checkout') {
+        
+        sh(script: 'git config --global user.email "you@example.com"')
+        sh(script: 'git config --global user.name "Your Name"')
+        
         if (!fileExists('repo')){ sh(script: "rm -rf repo && mkdir -p repo") }
         dir('repo') {
           withCredentials([string(credentialsId: config.gitlabCredentialsId, variable: 'credentials')]) {
