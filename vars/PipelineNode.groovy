@@ -124,6 +124,9 @@ def call(body) {
         
         if(helmMode == "native") {
           
+          // create version flag
+          chartVersionFlag = config.envDetails.chartVersion ? "--version ${config.envDetails.chartVersion} " : ""
+          
           // upgrade or install release
           def deployCommand = "helm upgrade " +
             "--install " +
@@ -131,6 +134,7 @@ def call(body) {
             "-f ${config.workspace}/${config.envDetails.helmValues} " +
             "-f ${config.workspace}/secrets-deployment.json " +
             setParams +
+            chartVersionFlag +
             "--dry-run=${dryRun.toString()} " +
             "--namespace ${config.envDetails.k8sNamespace} " +
             "${config.helmReleaseName} " +
@@ -140,6 +144,9 @@ def call(body) {
           sh(script: deployCommand)
           
         } else if(helmMode == "template") {
+          
+          // create version flag
+          chartVersionFlag = config.envDetails.chartVersion ? "--version ${config.envDetails.chartVersion} " : ""
           
           // create long Yaml with all Kubernetes resources
           def templateCommand = "helm template " +
