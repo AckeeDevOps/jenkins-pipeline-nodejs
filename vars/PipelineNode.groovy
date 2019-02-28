@@ -122,6 +122,9 @@ def call(body) {
         def dryRun = config.envDetails.dryRun ?: false // prepare string for --dry-run flags
         helmMode = config.envDetails.helmMode ?: "native"
         
+        // sync repos
+        sh(script: "helm repo update")
+        
         if(helmMode == "native") {
           
           // create version flag
