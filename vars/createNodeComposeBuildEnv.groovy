@@ -10,7 +10,8 @@ def call(Map config, String filename) {
           build: [
             context: './repo',
             args: [
-              PRIVATE_KEY: env.KEY
+              PRIVATE_KEY: env.KEY,
+              CI_BUILD_BRANCH: config.branch,
             ]
           ],
           environment: [NODE_PATH: '.']
