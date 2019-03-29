@@ -129,6 +129,8 @@ def call(body) {
           
           // create version flag
           chartVersionFlag = config.envDetails.chartVersion ? "--version ${config.envDetails.chartVersion} " : ""
+          // create force flag
+          releaseForceUpgradeFlag = config.envDetails.releaseForceUpgrade ? "--force " : ""
           
           // upgrade or install release
           def deployCommand = "helm upgrade " +
@@ -138,6 +140,7 @@ def call(body) {
             "-f ${config.workspace}/secrets-deployment.json " +
             setParams +
             chartVersionFlag +
+            releaseForceUpgradeFlag +
             "--dry-run=${dryRun.toString()} " +
             "--namespace ${config.envDetails.k8sNamespace} " +
             "${config.helmReleaseName} " +
