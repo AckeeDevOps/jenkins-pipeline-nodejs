@@ -6,11 +6,12 @@ def call(Map config, String filename) {
       version: '3.1',
       services: [
         main: [
-          image: config.dockerImageTag,
+          image: "${config.dockerImageName}:${config.dockerImageTag}",
           build: [
             context: './repo',
             args: [
-              PRIVATE_KEY: env.KEY
+              PRIVATE_KEY: env.KEY,
+              CI_BUILD_BRANCH: config.branch,
             ]
           ],
           environment: [NODE_PATH: '.']

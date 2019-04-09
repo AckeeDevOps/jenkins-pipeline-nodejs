@@ -175,205 +175,59 @@ that all secrets are put to the flat Map so local key should have unique name.
 
 ```groovy
 PipelineNode{
+  // app specific stuff
   projectFriendlyName = "your-awesome-project-name"
+  appName = "api"
+  appRole = "server"
+  appTier = "backend"
+  slackChannel = "#ci-channel011"
 
-  kubeConfigPathPrefix = "/home/jenkins/.kube"
-  gcpDockerRegistryPrefix = "eu.gcr.io"
+  // RSA private key for ssh operations (git)
   sshCredentialsId = "jenkins-ssh-key"
-
   documentation = [:] // this won't trigger documentation stage
 
-  branchEnvs = [
-    master: [
-      friendlyEnvName: "production",
-      gcpProjectId: "gcp-project-id1234",
-      gkeClusterName: "production",
-      k8sNamespace: "default",
-      helmChart: "repo/helm/chart",
-      helmValues: [
-        deployment: [
-          replicaCount: 2,
-          hcActive: true,
-          hcPath: '/healtz',
-          hcPort: 3000,
-          requestsCpu: "100m",
-          requestsMemory: "100Mi",
-          limitsCpu: "500m",
-          limitsMemory: "512Mi"
-        ]
-      ]
-    ],
-    stage: [
-      friendlyEnvName: "stage",
-      gcpProjectId: "gcp-project-id1234",
-      gkeClusterName: "stage",
-      k8sNamespace: "default",
-      helmChart: "repo/helm/chart",
-      helmValues: [
-        deployment: [
-          replicaCount: 1,
-          hcActive: true,
-          hcPath: '/healtz',
-          hcPort: 3000,
-          requestsCpu: "100m",
-          requestsMemory: "100Mi",
-          limitsCpu: "200m",
-          limitsMemory: "256Mi"
-        ]
-      ]
-    ],
-    development: [
-      friendlyEnvName: "development",
-      gcpProjectId: "gcp-project-id1234",
-      gkeClusterName: "development",
-      k8sNamespace: "default",
-      helmChart: "repo/helm/chart",
-      helmValues: [
-        deployment: [
-          replicaCount: 1,
-          hcActive: true,
-          hcPath: '/healtz',
-          hcPort: 3000,
-          requestsCpu: "100m",
-          requestsMemory: "100Mi",
-          limitsCpu: "200m",
-          limitsMemory: "256Mi"
-        ]
-      ]
-    ],
+  // following properties can be passed to certain environments (below)
+  envDefaults = [
+    gcpDockerRegistryPrefix: "eu.gcr.io",
+    kubeConfigPathPrefix: "/home/jenkins/.kube",
+    helmChart: "repo/helm/chart/default",
+    injectSecretsDeployment: true,
+    injectSecretsTest: true, 
+    vaultAddr: "https://vault.co.uk"
+    vaultTokenSecretId: "my-jenkins-secret",
+    kubeConfigPathPrefix: "/home/jenkins/.kube",
+    dryRun: false,
+    debugMode: false,
+    nodeTestEnv: [NODE_ENV: 'test', NODE_PATH: '.'],
+    runLint: true,
+    debugMode: false,
   ]
 
-  testConfig = [
-    nodeTestEnv: [NODE_ENV: 'test', NODE_PATH: '.']
+  branchEnvs = [:]
+  branchEnvs.development = [
+    friendlyEnvName: "development",
+    gcpProjectId: "gcp-project-id1234",
+    gkeClusterName: "development",
+    k8sNamespace: "default",
+    helmValues: "repo/helm/values/development.yaml",
+  ]
+
+  branchEnvs.stage = [
+    friendlyEnvName: "stage",
+    gcpProjectId: "gcp-project-id1234",
+    gkeClusterName: "stage",
+    k8sNamespace: "default",
+    helmValues: "repo/helm/values/stage.yaml",
+  ]
+
+  branchEnvs.master = [
+    friendlyEnvName: "production",
+    gcpProjectId: "gcp-project-id1234",
+    gkeClusterName: "production",
+    k8sNamespace: "default",
+    helmValues: "repo/helm/values/production.yaml",
   ]
 }
-```
-
-**Example with secrets injection for the production environment**
-
-```groovy
-PipelineNode{
-  projectFriendlyName = "your-awesome-project-name"
-
-  kubeConfigPathPrefix = "/home/jenkins/.kube"
-  gcpDockerRegistryPrefix = "eu.gcr.io"
-  sshCredentialsId = "jenkins-ssh-key"
-
-  branchEnvs = [
-    master: [
-      friendlyEnvName: "production",
-      gcpProjectId: "gcp-project-id1234",
-      gkeClusterName: "production",
-      k8sNamespace: "default",
-      helmChart: "repo/helm/chart",
-      helmValues: [
-        deployment: [
-          replicaCount: 2,
-          hcActive: true,
-          hcPath: '/healtz',
-          hcPort: 3000,
-          requestsCpu: "100m",
-          requestsMemory: "100Mi",
-          limitsCpu: "500m",
-          limitsMemory: "512Mi"
-        ]
-      ],
-      secretsInjection: [
-        jenkinsCredentialsId: 'jenkins-secret-with-vault-token',
-        vaultUrl: 'https://your-vault-url.co.uk',
-        secrets: [
-          [
-            vaultSecretPath: 'secret/data/path/to/your/db/secret',
-            keyMap: [
-              [vault: 'mysqlUser', local: 'mysqlUser'],
-              [vault: 'mysqlPassword', local: 'mysqlPassword']
-            ]
-          ]
-        ]
-      ]
-    ],
-    stage: [
-      friendlyEnvName: "stage",
-      gcpProjectId: "gcp-project-id1234",
-      gkeClusterName: "stage",
-      k8sNamespace: "default",
-      helmChart: "repo/helm/chart",
-      helmValues: [
-        deployment: [
-          replicaCount: 1,
-          hcActive: true,
-          hcPath: '/healtz',
-          hcPort: 3000,
-          requestsCpu: "100m",
-          requestsMemory: "100Mi",
-          limitsCpu: "200m",
-          limitsMemory: "256Mi"
-        ]
-      ]
-    ],
-    development: [
-      friendlyEnvName: "development",
-      gcpProjectId: "gcp-project-id1234",
-      gkeClusterName: "development",
-      k8sNamespace: "default",
-      helmChart: "repo/helm/chart",
-      helmValues: [
-        deployment: [
-          replicaCount: 1,
-          hcActive: true,
-          hcPath: '/healtz',
-          hcPort: 3000,
-          requestsCpu: "100m",
-          requestsMemory: "100Mi",
-          limitsCpu: "200m",
-          limitsMemory: "256Mi"
-        ]
-      ]
-    ],
-  ]
-
-  testConfig = [
-    nodeTestEnv: [NODE_ENV: 'test', NODE_PATH: '.']
-  ]
-}
-```
-
-Keys from the specification will be injected to the Helm values (base64 encoded)
-under the `secrets.data` key so you can access them in your Helm chart as usual, for example:
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: mysql-credentials
-type: Opaque
-data:
-  mysqlUser: {{ required "required" .Values.secrets.data.mysqlUser }}
-  mysqlPassword: {{ required "required" .Values.secrets.data.mysqlPassword }}
-```
-
-Then you can refer these secrets in yout Kubernetes manifests, for example:
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: secret-envars-test-pod
-spec:
-  containers:
-  - name: envars-test-container
-    image: nginx
-    env:
-    - name: MYSQL_USER
-      valueFrom:
-        secretKeyRef:
-          name: mysql-credentials
-          key: mysqlUser
-    - name: MYSQL_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: mysql-credentials
-          key: mysqlPassword
 ```
 
 ## Dockerfile format

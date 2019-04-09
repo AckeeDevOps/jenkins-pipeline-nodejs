@@ -11,7 +11,7 @@ def call(body) {
     // set current step for the notification handler
     def pipelineStep = "start"
     def repositoryUrl = scm.getUserRemoteConfigs()[0].getUrl()
-    def config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER, repositoryUrl)
+    def config = [:]
 
     try {
       // https://jenkins.io/doc/pipeline/steps/workflow-scm-step/
@@ -21,7 +21,7 @@ def call(body) {
         sh(script: 'git config --global user.email "you@example.com"')
         sh(script: 'git config --global user.name "Your Name"')
         
-        if (!fileExists('repo')){ new File('repo').mkdir() }
+        if (!fileExists('repo')){ sh(script: "mkdir -p repo") }
         dir('repo') { checkout scm }
 
         // create a changelog
@@ -29,8 +29,8 @@ def call(body) {
         echo(changelog)
         writeFile(file: "./changelog.txt", text: changelog)
 
-        // set author name
-        config.startedBy = getNodeAuthorName()
+        // process config
+        config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER, repositoryUrl)
       }
 
       // start of Build stage
@@ -45,14 +45,14 @@ def call(body) {
       stage('Push image') {
         pipelineStep = "push image"
         sh(script: "gcloud auth configure-docker --configuration ${config.envDetails.gcpProjectId}")
-        sh(script: "docker push ${config.dockerImageTag}")
+        sh(script: "docker push ${config.dockerImageName}:${config.dockerImageTag}")
       }
       // end of Docker push image stage
 
       // start of Test stage
       stage('Test') {
         pipelineStep = "test"
-        if (config.testConfig) {
+        if (config.envDetails.runTests) {
           createNodeComposeTestEnv(config, './test.json')
           sh(script: "docker-compose -f test.json up --no-start")
 
@@ -72,7 +72,7 @@ def call(body) {
       // start of Lint stage
       stage('Lint') {
         pipelineStep = "lint"
-        if(config.runLint) {
+        if(config.envDetails.runLint) {
           createNodeComposeLintEnv(config, './lint.json')
           sh(script: "docker-compose -f lint.json up --no-start")
           sh(script: "docker-compose -f lint.json run main npm run ci-lint")
@@ -106,37 +106,81 @@ def call(body) {
         pipelineStep = "deploy"
 
         // if specified, obtain secrets
-        def secretData
-        if(config.secretsInjection) {
-          // get secrets from Vault
-          secretData = createNodeSecretsManifest(config)
+        createNodeSecretsManifest(config)
+        
+        // create string with all --set flags so we cab reuse them if needed
+        def setParams = "--set general.imageName=${config.dockerImageName} " +
+          "--set general.imageTag=${config.dockerImageTag} " +
+          "--set general.appName=${config.appName} " +
+          "--set general.projectName=${config.projectFriendlyName} " +
+          "--set general.environment=${config.envDetails.friendlyEnvName} " +
+          "--set general.meta.buildHash=${config.commitHash} " +
+          "--set general.meta.branch=${config.branch} " +
+          "--set general.meta.repositoryUrl=${config.repositoryUrl} " +
+          "--set general.gcpProjectId=${config.envDetails.gcpProjectId} "
+        
+        def dryRun = config.envDetails.dryRun ?: false // prepare string for --dry-run flags
+        helmMode = config.envDetails.helmMode ?: "native"
+        
+        // sync repos
+        sh(script: "helm repo update")
+        
+        if(helmMode == "native") {
+          
+          // create version flag
+          chartVersionFlag = config.envDetails.chartVersion ? "--version ${config.envDetails.chartVersion} " : ""
+          // create force flag
+          releaseForceUpgradeFlag = config.envDetails.releaseForceUpgrade ? "--force " : ""
+          
+          // upgrade or install release
+          def deployCommand = "helm upgrade " +
+            "--install " +
+            "--kubeconfig ${config.kubeConfigPath} " +
+            "-f ${config.workspace}/${config.envDetails.helmValues} " +
+            "-f ${config.workspace}/secrets-deployment.json " +
+            setParams +
+            chartVersionFlag +
+            releaseForceUpgradeFlag +
+            "--dry-run=${dryRun.toString()} " +
+            "--namespace ${config.envDetails.k8sNamespace} " +
+            "${config.helmReleaseName} " +
+            "${config.envDetails.helmChart}"       
+
+          // run the final deploy script
+          sh(script: deployCommand)
+          
+        } else if(helmMode == "template") {
+          
+          // create version flag
+          chartVersionFlag = config.envDetails.chartVersion ? "--version ${config.envDetails.chartVersion} " : ""
+          
+          // create long Yaml with all Kubernetes resources
+          def templateCommand = "helm template " +
+            "-f ${config.workspace}/${config.envDetails.helmValues} " +
+            "-f ${config.workspace}/secrets-deployment.json " +
+            setParams +
+            "-n ${config.helmReleaseName} " +
+            "${config.envDetails.helmChart} " +
+            "> ./helm-template.yaml"
+          sh(script: templateCommand)
+          
+          // apply Kubernetes manifest
+          def deployCommand = "kubectl " +
+            "--kubeconfig ${config.kubeConfigPath} " +
+            "apply " +
+            "-f ./helm-template.yaml " +
+            "-n ${config.envDetails.k8sNamespace} " +
+            "--dry-run=${dryRun}"
+          
+          // execute kubectl apply
+          sh(script: deployCommand)
+          
         } else {
-          echo("Skipping injection of credentials")
+          error("unknown helmMode '${helmMode}'")
         }
-
-        // create helm values file
-        def helmValuesJson = createNodeHelmValues(config, secretData)
-        writeFile(file: "./values.json", text: helmValuesJson)
-
-        // try to create yaml file from template first
-        // this checks whether values.yaml contains required fields
-        def tmplOut = config.debugMode ? "./tmpl.out.yaml"  : "/dev/null"
-        sh(script: "helm template -f ./values.json ${config.helmChart} -n ${config.helmReleaseName} > ${tmplOut}")
-
-        // upgrade or install release
-        def deployCommand = "helm upgrade " +
-          "--install " +
-          "--kubeconfig ${config.kubeConfigPath} " +
-          "-f ./values.json " +
-          "--namespace ${config.envDetails.k8sNamespace} " +
-          "${config.helmReleaseName} " +
-          "${config.helmChart} "
-
-        sh(script: deployCommand + " --dry-run")
-        if(!config.dryRun) { sh(script: deployCommand) }
-
+        
         // get status of the services within the namespace
-        if(!config.dryRun) {
+        if(!config.envDetails.dryRun) {
         sh(script: "kubectl --kubeconfig ${config.kubeConfigPath} " +
           "get svc -n ${config.envDetails.k8sNamespace} -o json | " +
           "jq '.items[] | {name: .metadata.name, ports: .spec.ports[]}'")
@@ -189,11 +233,15 @@ def call(body) {
       }
 
       // sometimes you need to check these files you know
-      if(!config.debugMode) {
+      if(!config.envDetails.debugMode) {
         sh(script: 'rm -rf ./test.json')
         sh(script: 'rm -rf ./build.json')
         sh(script: 'rm -rf ./secrets')
         sh(script: 'rm -rf ./values.json')
+        sh(script: 'rm -rf ./secrets-deployment.json')
+        sh(script: 'rm -rf ./secrets-test.json')
+        sh(script: 'rm -rf ./test-tmp.json')
+        sh(script: 'rm -rf ./helm-template.yaml')
       } else {
         echo("DEBUG MODE: on")
       }

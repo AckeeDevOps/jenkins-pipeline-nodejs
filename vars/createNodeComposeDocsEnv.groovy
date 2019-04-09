@@ -6,7 +6,7 @@ def call(Map config, String filename) {
     version: '3.1',
     services: [
       main: [
-        image: config.dockerImageTag,
+        image: "${config.dockerImageName}:${config.dockerImageTag}",
         build: [
           context: './repo'
         ],
