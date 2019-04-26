@@ -50,8 +50,7 @@ def call(Map config, String filename) {
       // see https://github.com/AckeeDevOps/vaultier
       env.VAULTIER_VAULT_ADDR = config.envDetails.vaultAddr
       env.VAULTIER_VAULT_TOKEN = env.VAULT_TOKEN
-      env.VAULTIER_BRANCH = config.branch
-      env.VAULTIER_RUN_CAUSE = "test"
+      env.VAULTIER_ENVIRONMENT = "test"
       env.VAULTIER_OUTPUT_FORMAT = "dotenv"
       env.VAULTIER_SECRET_SPECS_PATH = config.envDetails.secretSpecsPath ?: "${config.workspace}/repo/secrets.yaml"
       env.VAULTIER_SECRET_OUTPUT_PATH = "${config.workspace}/secrets-test.json"
