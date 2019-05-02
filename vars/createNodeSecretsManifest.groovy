@@ -11,7 +11,7 @@ def call(Map config) {
       env.VAULTIER_SECRET_OUTPUT_PATH = "${config.workspace}/secrets-deployment.json"
 
       // obtain secrets from Vault
-      sh(script: "vaultier")
+      sh(script: "vaultier2")
     }
   } else {
     echo("No secrets for the deployment")
