@@ -63,7 +63,7 @@ def call(Map config, String filename) {
       env.ENVDOCKSEC_CREATE_OUTPUT_DIRECTORY = "true"
 
       // obtain secrets from Vault
-      sh(script: "vaultier") // see https://github.com/AckeeDevOps/vaultier
+      sh(script: "vaultier2") // see https://github.com/AckeeDevOps/vaultier
       sh(script: "envdocksec") // see https://github.com/AckeeDevOps/envdocksec
 
       // add volume with JSON file to compose manifest
