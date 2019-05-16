@@ -39,10 +39,10 @@ def call(Map config, String filename) {
   sh(script: 'rm -rf ./ci-outputs/npm-logs')
 
   // create dir structure
-  sh(script: 'mkdir -p ./ci-outputs')
-  sh(script: 'mkdir -p ./ci-outputs/coverage')
-  sh(script: 'mkdir -p ./ci-outputs/junit')
-  sh(script: 'mkdir -p ./ci-outputs/npm-logs')
+  sh(script: 'mkdir -p ./ci-outputs && chmod -R 666 ./ci-outputs')
+  sh(script: 'mkdir -p ./ci-outputs/coverage && chmod -R 666 ./ci-outputs')
+  sh(script: 'mkdir -p ./ci-outputs/junit && chmod -R 666 ./ci-outputs/junit')
+  sh(script: 'mkdir -p ./ci-outputs/npm-logs && chmod -R 666 ./ci-outputs/npm-logs')
 
   if(config.envDetails.injectSecretsTest) {
     // set vaultier PARAMS first
@@ -65,6 +65,7 @@ def call(Map config, String filename) {
       // obtain secrets from Vault
       sh(script: "vaultier2") // see https://github.com/AckeeDevOps/vaultier
       sh(script: "envdocksec") // see https://github.com/AckeeDevOps/envdocksec
+      sh(script: "chmod -R 666 ${config.workspace}/secrets")
 
       // add volume with JSON file to compose manifest
       template.services.main.volumes.add("${config.workspace}/secrets-test.json:/etc/secrets/cfg.json")
