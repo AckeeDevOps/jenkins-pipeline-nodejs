@@ -43,6 +43,7 @@ def call(Map config, String filename) {
   sh(script: 'mkdir -p ./ci-outputs/coverage')
   sh(script: 'mkdir -p ./ci-outputs/junit')
   sh(script: 'mkdir -p ./ci-outputs/npm-logs')
+  sh(script: 'chmod -R 777 ./ci-outputs')
 
   if(config.envDetails.injectSecretsTest) {
     // set vaultier PARAMS first
@@ -50,8 +51,7 @@ def call(Map config, String filename) {
       // see https://github.com/AckeeDevOps/vaultier
       env.VAULTIER_VAULT_ADDR = config.envDetails.vaultAddr
       env.VAULTIER_VAULT_TOKEN = env.VAULT_TOKEN
-      env.VAULTIER_BRANCH = config.branch
-      env.VAULTIER_RUN_CAUSE = "test"
+      env.VAULTIER_ENVIRONMENT = "test"
       env.VAULTIER_OUTPUT_FORMAT = "dotenv"
       env.VAULTIER_SECRET_SPECS_PATH = config.envDetails.secretSpecsPath ?: "${config.workspace}/repo/secrets.yaml"
       env.VAULTIER_SECRET_OUTPUT_PATH = "${config.workspace}/secrets-test.json"
@@ -64,8 +64,9 @@ def call(Map config, String filename) {
       env.ENVDOCKSEC_CREATE_OUTPUT_DIRECTORY = "true"
 
       // obtain secrets from Vault
-      sh(script: "vaultier") // see https://github.com/AckeeDevOps/vaultier
+      sh(script: "vaultier2") // see https://github.com/AckeeDevOps/vaultier
       sh(script: "envdocksec") // see https://github.com/AckeeDevOps/envdocksec
+      sh(script: "chmod -R 777 ${config.workspace}/secrets")
 
       // add volume with JSON file to compose manifest
       template.services.main.volumes.add("${config.workspace}/secrets-test.json:/etc/secrets/cfg.json")
