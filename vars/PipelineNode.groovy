@@ -117,6 +117,7 @@ def call(body) {
           "--set general.meta.buildHash=${config.commitHash} " +
           "--set general.meta.branch=${config.branch} " +
           "--set general.meta.repositoryUrl=${config.repositoryUrl} " +
+          "--set general.meta.slackChannel=${config.slackChannel} " +
           "--set general.gcpProjectId=${config.envDetails.gcpProjectId} "
         
         def dryRun = config.envDetails.dryRun ?: false // prepare string for --dry-run flags
