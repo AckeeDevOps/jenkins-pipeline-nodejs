@@ -200,6 +200,7 @@ PipelineNode{
     debugMode: false,
     nodeTestEnv: [NODE_ENV: 'test', NODE_PATH: '.'],
     runLint: true,
+    runNpmAudit: true,
     debugMode: false,
   ]
 
