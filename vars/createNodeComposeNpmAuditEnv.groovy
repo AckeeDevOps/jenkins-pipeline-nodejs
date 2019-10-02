@@ -10,6 +10,7 @@ def call(Map config, String filename) {
         build: [
           context: './repo'
         ],
+        user: 'root',
         environment: [:], // map ENV_VARIABLE:value
         volumes: [
           "./ci-outputs/npm-audit:/usr/src/app/output"
