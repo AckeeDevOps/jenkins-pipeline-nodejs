@@ -93,14 +93,7 @@ def call(body) {
         if(config.envDetails.runNpmAudit) {
           createNodeComposeNpmAuditEnv(config, './npm-audit.json')
           sh(script: "docker-compose -f npm-audit.json up --no-start")
-          sh '''
-            docker-compose -f npm-audit.json run main node -e "\
-              var fs = require('fs'); \
-              var content = JSON.parse(fs.readFileSync('./package.json')); \
-              delete content.devDependencies; \
-              fs.writeFileSync('./package.json', JSON.stringify(content, null, 4))"
-            docker-compose -f npm-audit.json run main ./node_modules/audit-ci/bin/audit-ci -hc > ci-outputs/npm-audit/audit.json
-          '''
+          sh(script: "docker-compose -f npm-audit.json run main npm audit --production > ci-outputs/npm-audit/audit.json")
         } else {
           echo "NPM Audit stage has been skipped based on the Jenkinsfile configuration"
         }
