@@ -273,6 +273,13 @@ def call(body) {
           reason: pipelineStep
         )
       }
+
+      if(config.envDetails.logToBucket) {
+        withCredentials([usernamePassword(credentialsId: config.envDetails.jenkinsCredentialsId, usernameVariable: 'username', passwordVariable: 'password')]) {
+          sh(script: "curl -u ${username}:${password} -L ${env.BUILD_URL}/consoleText -o ${config.workspace}/consoleText.log")
+          sh(script: "gsutil cp ${config.workspace}/consoleText.log ${config.envDetails.logBucketUrl}/consoleText.${env.BUILD_NUMBER}.log")
+        }
+      }
     }
   }
 }

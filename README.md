@@ -202,6 +202,9 @@ PipelineNode{
     runLint: true,
     runNpmAudit: true,
     debugMode: false,
+    logToBucket: true,
+    logBucketUrl: "gs://api-logs",
+    jenkinsCredentialsId: "jenkins-log-to-bucket"
   ]
 
   branchEnvs = [:]
