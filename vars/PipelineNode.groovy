@@ -16,7 +16,7 @@ def call(body) {
     try {
       properties([
         disableConcurrentBuilds(),
-        buildDiscarder(logRotator(numToKeepStr: config.buildsToKeep))
+        buildDiscarder(logRotator(numToKeepStr: "30"))
       ])
 
       // https://jenkins.io/doc/pipeline/steps/workflow-scm-step/
