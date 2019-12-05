@@ -73,6 +73,11 @@ This option must be set,
 [follow the official Google documentation](https://cloud.google.com/container-registry/docs/pushing-and-pulling)
 to get the right prefix.
 
+🔻 **/buildsToKeep**
+
+Optional. Set how many logs of pipeline jobs are stored on Jenkins master (applies to all branches).
+Default value is 30
+
 🔻 **/sshCredentialsId**
 
 This option must be set. It's the id of Jenkins credentials with the private
@@ -181,6 +186,7 @@ PipelineNode{
   appRole = "server"
   appTier = "backend"
   slackChannel = "#ci-channel011"
+  logsToKeep = 30
 
   // RSA private key for ssh operations (git)
   sshCredentialsId = "jenkins-ssh-key"

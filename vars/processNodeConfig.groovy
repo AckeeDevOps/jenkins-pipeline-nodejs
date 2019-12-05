@@ -23,6 +23,7 @@ def call(Map cfg, String branch, String build, String repositoryUrl = nil){
   config.appName = cfg.appName
   config.appRole = cfg.appRole
   config.appTier = cfg.appTier
+  config.buildsToKeep =  cfg.buildsToKeep ?: 30
 
   config.sshCredentialsId = cfg.sshCredentialsId
   config.slackChannel = cfg.slackChannel

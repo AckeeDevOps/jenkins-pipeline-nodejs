@@ -14,6 +14,11 @@ def call(body) {
     def config = [:]
 
     try {
+      properties([
+        disableConcurrentBuilds(),
+        buildDiscarder(logRotator(numToKeepStr: config.buildsToKeep.toString()))
+      ])
+
       // https://jenkins.io/doc/pipeline/steps/workflow-scm-step/
       stage('Checkout') {
         pipelineStep = "checkout"
