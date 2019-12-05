@@ -31,12 +31,11 @@ def call(body) {
 
         // process config
         config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER, repositoryUrl)
-        echo(config.buildsToKeep)
       }
 
       properties([
         disableConcurrentBuilds(),
-        buildDiscarder(logRotator(numToKeepStr: "40"))
+        buildDiscarder(logRotator(numToKeepStr: config.buildsToKeep))
       ])
 
       // start of Build stage
