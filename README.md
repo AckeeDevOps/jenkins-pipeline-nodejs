@@ -73,7 +73,7 @@ This option must be set,
 [follow the official Google documentation](https://cloud.google.com/container-registry/docs/pushing-and-pulling)
 to get the right prefix.
 
-🔻 **/logsToKeep**
+🔻 **/buildsToKeep**
 
 Optional. Set how many logs of pipeline jobs are stored on Jenkins master (applies to all branches).
 Default value is 30
