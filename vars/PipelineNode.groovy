@@ -35,7 +35,7 @@ def call(body) {
 
       properties([
         disableConcurrentBuilds(),
-        buildDiscarder(logRotator(numToKeepStr: config.buildsToKeep))
+        buildDiscarder(logRotator(numToKeepStr: config.buildsToKeep.toString()))
       ])
 
       // start of Build stage
