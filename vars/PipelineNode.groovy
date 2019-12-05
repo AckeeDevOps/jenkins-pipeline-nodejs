@@ -32,10 +32,10 @@ def call(body) {
         // process config
         config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER, repositoryUrl)
       }
-      
+
       properties([
         disableConcurrentBuilds(),
-        buildDiscarder(logRotator(numToKeepStr: config.buildsToKeep))
+        buildDiscarder(logRotator(numToKeepStr: "40"))
       ])
 
       // start of Build stage
