@@ -31,8 +31,7 @@ def call(body) {
 
         // process config
         config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER, repositoryUrl)
-        def builds = config.buildsToKeep
-        echo(builds)
+        echo(config.buildsToKeep)
       }
 
       properties([
