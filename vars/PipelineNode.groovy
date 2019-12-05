@@ -14,11 +14,6 @@ def call(body) {
     def config = [:]
 
     try {
-      properties([
-        disableConcurrentBuilds(),
-        buildDiscarder(logRotator(numToKeepStr: config.buildsToKeep))
-      ])
-
       // https://jenkins.io/doc/pipeline/steps/workflow-scm-step/
       stage('Checkout') {
         pipelineStep = "checkout"
@@ -37,6 +32,11 @@ def call(body) {
         // process config
         config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER, repositoryUrl)
       }
+      
+      properties([
+        disableConcurrentBuilds(),
+        buildDiscarder(logRotator(numToKeepStr: config.buildsToKeep))
+      ])
 
       // start of Build stage
       stage('Build') {
