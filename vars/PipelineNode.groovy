@@ -34,7 +34,8 @@ def call(body) {
       }
 
       properties([
-        echo config.buildsToKeep
+        def builds = config.buildsToKeep
+        echo builds
         disableConcurrentBuilds(),
         buildDiscarder(logRotator(numToKeepStr: "40"))
       ])
