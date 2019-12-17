@@ -102,7 +102,10 @@ This option must be set. It's always a Map, keys are named by Git branches.
 🔻 **/branchEnvs/[branch_name]/friendlyEnvName**
 
 This option must be set. It's typically `production` for the `master` branch,
-`development` for the `development` branch etc.
+`development` for the `development` branch etc. It configures:
+- `VAULTIER_ENVIRONMENT`
+- it is part of Helm release name
+- `general.environment` Helm parameter
 
 🔻 **/branchEnvs/[branch_name]/gcpProjectId**
 
@@ -198,7 +201,7 @@ PipelineNode{
     kubeConfigPathPrefix: "/home/jenkins/.kube",
     helmChart: "repo/helm/chart/default",
     injectSecretsDeployment: true,
-    injectSecretsTest: true, 
+    injectSecretsTest: true,
     vaultAddr: "https://vault.co.uk"
     vaultTokenSecretId: "my-jenkins-secret",
     kubeConfigPathPrefix: "/home/jenkins/.kube",
