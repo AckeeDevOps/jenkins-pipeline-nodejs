@@ -17,10 +17,10 @@ def call(body) {
       // https://jenkins.io/doc/pipeline/steps/workflow-scm-step/
       stage('Checkout') {
         pipelineStep = "checkout"
-        
+
         sh(script: 'git config --global user.email "you@example.com"')
         sh(script: 'git config --global user.name "Your Name"')
-        
+
         if (!fileExists('repo')){ sh(script: "mkdir -p repo") }
         dir('repo') { checkout scm }
 
@@ -98,7 +98,7 @@ def call(body) {
         if(config.envDetails.runNpmAudit) {
           createNodeComposeNpmAuditEnv(config, './npm-audit.json')
           sh(script: "docker-compose -f npm-audit.json up --no-start")
-          sh(script: "docker-compose -f npm-audit.json run main npm audit --production > ci-outputs/npm-audit/audit.json")
+          sh(script: "docker-compose -f npm-audit.json run main npm audit --production --audit-level=high > ci-outputs/npm-audit/audit.json")
         } else {
           echo "NPM Audit stage has been skipped based on the Jenkinsfile configuration"
         }
@@ -125,7 +125,7 @@ def call(body) {
 
         // if specified, obtain secrets
         createNodeSecretsManifest(config)
-        
+
         // create string with all --set flags so we cab reuse them if needed
         def setParams = "--set general.imageName=${config.dockerImageName} " +
           "--set general.imageTag=${config.dockerImageTag} " +
@@ -137,20 +137,20 @@ def call(body) {
           "--set general.meta.repositoryUrl=${config.repositoryUrl} " +
           "--set general.meta.slackChannel=${config.slackChannel} " +
           "--set general.gcpProjectId=${config.envDetails.gcpProjectId} "
-        
+
         def dryRun = config.envDetails.dryRun ?: false // prepare string for --dry-run flags
         helmMode = config.envDetails.helmMode ?: "native"
-        
+
         // sync repos
         sh(script: "helm repo update")
-        
+
         if(helmMode == "native") {
-          
+
           // create version flag
           chartVersionFlag = config.envDetails.chartVersion ? "--version ${config.envDetails.chartVersion} " : ""
           // create force flag
           releaseForceUpgradeFlag = config.envDetails.releaseForceUpgrade ? "--force " : ""
-          
+
           // upgrade or install release
           def deployCommand = "helm upgrade " +
             "--install " +
@@ -163,16 +163,16 @@ def call(body) {
             "--dry-run=${dryRun.toString()} " +
             "--namespace ${config.envDetails.k8sNamespace} " +
             "${config.helmReleaseName} " +
-            "${config.envDetails.helmChart}"       
+            "${config.envDetails.helmChart}"
 
           // run the final deploy script
           sh(script: deployCommand)
-          
+
         } else if(helmMode == "template") {
-          
+
           // create version flag
           chartVersionFlag = config.envDetails.chartVersion ? "--version ${config.envDetails.chartVersion} " : ""
-          
+
           // create long Yaml with all Kubernetes resources
           def templateCommand = "helm template " +
             "-f ${config.workspace}/${config.envDetails.helmValues} " +
@@ -182,7 +182,7 @@ def call(body) {
             "${config.envDetails.helmChart} " +
             "> ./helm-template.yaml"
           sh(script: templateCommand)
-          
+
           // apply Kubernetes manifest
           def deployCommand = "kubectl " +
             "--kubeconfig ${config.kubeConfigPath} " +
@@ -190,14 +190,14 @@ def call(body) {
             "-f ./helm-template.yaml " +
             "-n ${config.envDetails.k8sNamespace} " +
             "--dry-run=${dryRun}"
-          
+
           // execute kubectl apply
           sh(script: deployCommand)
-          
+
         } else {
           error("unknown helmMode '${helmMode}'")
         }
-        
+
         // get status of the services within the namespace
         if(!config.envDetails.dryRun) {
         }
