@@ -105,20 +105,6 @@ def call(body) {
       }
       // end of NPM Audit stage
 
-      // start of Documentation stage
-      stage('Documentation') {
-        if(config.documentation) {
-          createNodeComposeDocsEnv(config, './documentation.json')
-          sh(script: "docker-compose -f documentation.json up --no-start")
-          sh(script: "docker-compose -f documentation.json run main npm run docs")
-          createNodeDocumentationGcsBucket(config)
-          uploadNodeDocumentation(config)
-        } else {
-          echo("skipping documentation.")
-        }
-      }
-      // end of Documentation stage
-
       // start of Deploy stage
       stage('Deploy') {
         pipelineStep = "deploy"
