@@ -30,6 +30,29 @@ Then just set `kubeConfigPathPrefix` and you're good to go.
 ### Secrets injection
 TBD
 
+### Automatic documentation compilation
+
+If `documentation` variable specified, pipilene will try to generate
+documentation with `npm run docs` command. Your nodejs script should
+be configured to generate `index.html` file to the `./docs-output`
+directory.
+
+**Example:**
+
+```json
+...
+"scripts": {
+  "docs": "aglio -i docs/api.apib --theme-variables flatly -o docs-output/index.html"
+},
+...
+```
+
+**Configuration options**
+- `documentation`/`bucketUrl` for example `gs://bucket-name.your.domain`
+- `documentation`/`storageClass` for example `regional`
+- `documentation`/`location` for example `europe-west3`
+- `documentation`/`pathPrefix` for example `project-name`
+
 ## Jenkinsfile options
 
 🔻 **/projectFriendlyName**
