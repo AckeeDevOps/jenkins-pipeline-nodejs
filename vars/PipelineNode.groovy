@@ -98,7 +98,7 @@ def call(body) {
         if(config.envDetails.runNpmAudit) {
           createNodeComposeNpmAuditEnv(config, './npm-audit.json')
           sh(script: "docker-compose -f npm-audit.json up --no-start")
-          sh(script: "docker-compose -f npm-audit.json run main npm audit --production --audit-level=high > ci-outputs/npm-audit/audit.json")
+          sh(script: "docker-compose -f npm-audit.json run main npm audit --production --audit-level=high | tee ci-outputs/npm-audit/audit.json")
         } else {
           echo "NPM Audit stage has been skipped based on the Jenkinsfile configuration"
         }
