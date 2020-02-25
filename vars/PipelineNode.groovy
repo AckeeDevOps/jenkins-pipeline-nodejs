@@ -31,6 +31,7 @@ def call(body) {
 
         // process config
         config = processNodeConfig(cfg, env.BRANCH_NAME, env.BUILD_NUMBER, repositoryUrl)
+        config.envDetails.logBucketPath = config.envDetails.logBucketPath ?: "build"
       }
 
       properties([
@@ -282,7 +283,7 @@ def call(body) {
       if(config.envDetails.logToBucket) {
         withCredentials([usernamePassword(credentialsId: config.envDetails.jenkinsCredentialsId, usernameVariable: 'username', passwordVariable: 'password')]) {
           sh(script: "curl -u ${username}:${password} -L ${env.BUILD_URL}/consoleText -o ${config.workspace}/consoleText.log")
-          sh(script: "gsutil cp ${config.workspace}/consoleText.log ${config.envDetails.logBucketUrl}/consoleText.${env.BUILD_NUMBER}.log")
+          sh(script: "gsutil cp ${config.workspace}/consoleText.log ${config.envDetails.logBucketUrl}/${config.envDetails.logBucketPath}/consoleText.${env.BUILD_NUMBER}.log")
         }
       }
     }
