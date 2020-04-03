@@ -10,6 +10,7 @@ def call(Map config, String filename) {
         build: [
           context: './repo'
         ],
+        user: 'root',
         volumes: [
           "./docs-output:/usr/src/app/docs-output"
         ]
