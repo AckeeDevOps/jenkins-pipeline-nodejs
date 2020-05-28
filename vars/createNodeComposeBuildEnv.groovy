@@ -15,7 +15,9 @@ def call(Map config, String filename) {
             ]
           ],
           environment: [NODE_PATH: '.'],
-          extra_hosts: ["kancl.ack.ee:192.168.130.252"]
+          extra_hosts: [
+            "kancl.ack.ee": 192.168.130.252
+          ]
         ]
       ]
     ]
