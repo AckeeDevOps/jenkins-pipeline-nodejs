@@ -14,7 +14,9 @@ def call(Map config, String filename) {
               CI_BUILD_BRANCH: config.branch,
             ]
           ],
-          environment: [NODE_PATH: '.']
+          environment: [NODE_PATH: '.'],
+          extra_hosts:
+            - "kancl.ack.ee:192.168.130.252"
         ]
       ]
     ]
