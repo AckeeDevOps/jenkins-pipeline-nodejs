@@ -86,7 +86,8 @@ def call(body) {
           // set correct path to tested files in the lint results
           sh(script: "sed -i 's#/usr/src/app/#${config.workspace}/repo/#g' ci-outputs/lint/checkstyle-result.xml")
           // record lint results
-          recordNodeLintResults()
+          // checkstyle plugin is dead and this pipeline is deprecated
+          //recordNodeLintResults()
         } else {
           echo "Lint stage has been skipped based on the Jenkinsfile configuration"
         }
